@@ -395,6 +395,8 @@ void RenderTarget::resetGLStates()
         glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
         m_cache.glStatesSet = true;
 
+        m_cache.blendModeEnabled = true;
+
         // Apply the default SFML states
         applyBlendMode(BlendAlpha);
         applyTransform(Transform::Identity);
@@ -446,6 +448,16 @@ void RenderTarget::applyCurrentView()
 ////////////////////////////////////////////////////////////
 void RenderTarget::applyBlendMode(const BlendMode& mode)
 {
+    bool enableBlendMode = (mode != BlendNone);
+    if (enableBlendMode != m_cache.blendModeEnabled)
+    {
+        if (enableBlendMode)
+            glCheck(glEnable(GL_BLEND));
+        else
+            glCheck(glDisable(GL_BLEND));
+        m_cache.blendModeEnabled = enableBlendMode;
+    }
+
     // Apply the blend mode, falling back to the non-separate versions if necessary
     if (GLEXT_blend_func_separate)
     {
