@@ -23,6 +23,9 @@ set(SRC
     ${INCROOT}/Image.hpp
     ${SRCROOT}/ImageLoader.cpp
     ${SRCROOT}/ImageLoader.hpp
+    ${SRCROOT}/MyFont.cpp
+    ${INCROOT}/MyFont.hpp
+    ${INCROOT}/MyGlyph.hpp
     ${INCROOT}/PrimitiveType.hpp
     ${INCROOT}/Rect.hpp
     ${INCROOT}/Rect.inl
@@ -62,6 +65,8 @@ set(DRAWABLES_SRC
     ${INCROOT}/Shape.hpp
     ${SRCROOT}/CircleShape.cpp
     ${INCROOT}/CircleShape.hpp
+    ${SRCROOT}/MyText.cpp
+    ${INCROOT}/MyText.hpp
     ${SRCROOT}/RectangleShape.cpp
     ${INCROOT}/RectangleShape.hpp
     ${SRCROOT}/ConvexShape.cpp
