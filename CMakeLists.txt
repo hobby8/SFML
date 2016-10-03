@@ -39,8 +39,8 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
 # setup version numbers
 set(VERSION_MAJOR 2)
-set(VERSION_MINOR 3)
-set(VERSION_PATCH 2)
+set(VERSION_MINOR 4)
+set(VERSION_PATCH 0)
 
 # add the SFML header path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -127,6 +127,16 @@ endif()
 
 # Visual C++: remove warnings regarding SL security and algorithms on pointers
 if(SFML_COMPILER_MSVC)
+    # add an option to choose whether PDB debug symbols should be generated (defaults to true when possible)
+    if(CMAKE_VERSION VERSION_LESS 3.1)
+        sfml_set_option(SFML_GENERATE_PDB FALSE BOOL "True to generate PDB debug symbols, FALSE otherwise. Requires CMake 3.1.")
+        if(SFML_GENERATE_PDB)
+            message(FATAL_ERROR "Generation of PDB files (SFML_GENERATE_PDB) requires at least CMake 3.1.0")
+        endif()
+    else()
+        sfml_set_option(SFML_GENERATE_PDB TRUE BOOL "True to generate PDB debug symbols, FALSE otherwise. Requires CMake 3.1.")
+    endif()
+
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
 endif()
 
@@ -177,15 +187,14 @@ if(SFML_OS_MACOSX)
         endif()
     endif()
 
-    # configure Xcode templates
-    if(CMAKE_OSX_ARCHITECTURES)
-        # maybe multiple arches are present in CMAKE_OSX_ARCHITECTURES
-        # we simply need to replace ';' by ' ' (space) and store the result in XCODE_TEMPLATES_ARCH
-        string(REPLACE ";" " " XCODE_TEMPLATES_ARCH "${CMAKE_OSX_ARCHITECTURES}")
-    else()
-        # no arch was provided to cmake, so we use the default one
-        set(XCODE_TEMPLATES_ARCH "\$(NATIVE_ARCH_ACTUAL)")
+    # only the default architecture (i.e. 64-bit) is supported
+    if(CMAKE_OSX_ARCHITECTURES AND NOT "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+        message(FATAL_ERROR "Only 64-bit architecture is supported")
+        return()
     endif()
+        
+    # configure Xcode templates
+    set(XCODE_TEMPLATES_ARCH "\$(NATIVE_ARCH_ACTUAL)")
 endif()
 
 if(SFML_OS_LINUX OR SFML_OS_FREEBSD)
@@ -231,6 +240,13 @@ if(NOT SFML_BUILD_FRAMEWORKS)
             DESTINATION .
             COMPONENT devel
             FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inl")
+
+    if(SFML_GENERATE_PDB)
+        install(DIRECTORY ${PROJECT_BINARY_DIR}/lib
+                DESTINATION .
+                COMPONENT devel
+                FILES_MATCHING PATTERN "*.pdb")
+    endif()
 else()
     # find only "root" headers
     file(GLOB SFML_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} "include/SFML/*")
@@ -264,7 +280,7 @@ else()
                        COMMAND cp -r ${PROJECT_SOURCE_DIR}/include/SFML/* $<TARGET_FILE_DIR:SFML>/Headers)
 
     # adapt install directory to allow distributing dylibs/frameworks in user's frameworks/application bundle
-    # NOTE: it's not required to link agains SFML.framework
+    # NOTE: it's not required to link against SFML.framework
     set_target_properties(SFML PROPERTIES
                           BUILD_WITH_INSTALL_RPATH 1
                           INSTALL_NAME_DIR "@rpath")

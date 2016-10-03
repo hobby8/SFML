@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2015 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -27,8 +27,8 @@
 /// \brief Helper functions to copy sf::Transform to sf::Glsl::Mat3/4
 ///
 ////////////////////////////////////////////////////////////
-void copyMatrix(const Transform& source, Matrix<3, 3>& dest);
-void copyMatrix(const Transform& source, Matrix<4, 4>& dest);
+void SFML_GRAPHICS_API copyMatrix(const Transform& source, Matrix<3, 3>& dest);
+void SFML_GRAPHICS_API copyMatrix(const Transform& source, Matrix<4, 4>& dest);
 
 ////////////////////////////////////////////////////////////
 /// \brief Copy array-based matrix with given number of elements
@@ -37,14 +37,14 @@ void copyMatrix(const Transform& source, Matrix<4, 4>& dest);
 /// <algorithm> and MSVC's annoying 4996 warning in header
 ///
 ////////////////////////////////////////////////////////////
-void copyMatrix(const float* source, std::size_t elements, float* dest);
+void SFML_GRAPHICS_API copyMatrix(const float* source, std::size_t elements, float* dest);
 
 ////////////////////////////////////////////////////////////
 /// \brief Helper functions to copy sf::Color to sf::Glsl::Vec4/Ivec4
 ///
 ////////////////////////////////////////////////////////////
-void copyVector(const Color& source, Vector4<float>& dest);
-void copyVector(const Color& source, Vector4<int>& dest);
+void SFML_GRAPHICS_API copyVector(const Color& source, Vector4<float>& dest);
+void SFML_GRAPHICS_API copyVector(const Color& source, Vector4<int>& dest);
 
 
 ////////////////////////////////////////////////////////////
@@ -106,7 +106,10 @@ struct Vector4
     ////////////////////////////////////////////////////////////
     /// \brief Construct from 4 vector components
     ///
-    /// \param X,Y,Z,W Components of the 4D vector
+    /// \param X Component of the 4D vector
+    /// \param Y Component of the 4D vector
+    /// \param Z Component of the 4D vector
+    /// \param W Component of the 4D vector
     ///
     ////////////////////////////////////////////////////////////
     Vector4(T X, T Y, T Z, T W) :

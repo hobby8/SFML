@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2015 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -194,8 +194,8 @@ GlxContext::~GlxContext()
     // Destroy the window if we own it
     if (m_window && m_ownsWindow)
     {
-        xcb_destroy_window(m_connection, m_window);
-        xcb_flush(m_connection);
+        XDestroyWindow(m_display, m_window);
+        XFlush(m_display);
     }
 
     // Close the connection with the X server
@@ -310,7 +310,7 @@ XVisualInfo GlxContext::selectBestVisual(::Display* display, unsigned int bitsPe
     {
         // Evaluate all the returned visuals, and pick the best one
         int bestScore = 0x7FFFFFFF;
-        XVisualInfo bestVisual;
+        XVisualInfo bestVisual = XVisualInfo();
         for (int i = 0; i < count; ++i)
         {
             // Check mandatory attributes
@@ -320,7 +320,7 @@ XVisualInfo GlxContext::selectBestVisual(::Display* display, unsigned int bitsPe
                 continue;
 
             // Extract the components of the current visual
-            int red, green, blue, alpha, depth, stencil, multiSampling, samples;
+            int red, green, blue, alpha, depth, stencil, multiSampling, samples, sRgb;
             glXGetConfig(display, &visuals[i], GLX_RED_SIZE,     &red);
             glXGetConfig(display, &visuals[i], GLX_GREEN_SIZE,   &green);
             glXGetConfig(display, &visuals[i], GLX_BLUE_SIZE,    &blue);
@@ -339,12 +339,21 @@ XVisualInfo GlxContext::selectBestVisual(::Display* display, unsigned int bitsPe
                 samples = 0;
             }
 
+            if ((sfglx_ext_EXT_framebuffer_sRGB == sfglx_LOAD_SUCCEEDED) || (sfglx_ext_ARB_framebuffer_sRGB == sfglx_LOAD_SUCCEEDED))
+            {
+                glXGetConfig(display, &visuals[i], GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, &sRgb);
+            }
+            else
+            {
+                sRgb = 0;
+            }
+
             // TODO: Replace this with proper acceleration detection
             bool accelerated = true;
 
             // Evaluate the visual
             int color = red + green + blue + alpha;
-            int score = evaluateFormat(bitsPerPixel, settings, color, depth, stencil, multiSampling ? samples : 0, accelerated);
+            int score = evaluateFormat(bitsPerPixel, settings, color, depth, stencil, multiSampling ? samples : 0, accelerated, sRgb == True);
 
             // If it's better than the current best, make it the new best
             if (score < bestScore)
@@ -373,7 +382,7 @@ XVisualInfo GlxContext::selectBestVisual(::Display* display, unsigned int bitsPe
 void GlxContext::updateSettingsFromVisualInfo(XVisualInfo* visualInfo)
 {
     // Update the creation settings from the chosen format
-    int depth, stencil, multiSampling, samples;
+    int depth, stencil, multiSampling, samples, sRgb;
     glXGetConfig(m_display, visualInfo, GLX_DEPTH_SIZE,   &depth);
     glXGetConfig(m_display, visualInfo, GLX_STENCIL_SIZE, &stencil);
 
@@ -388,9 +397,19 @@ void GlxContext::updateSettingsFromVisualInfo(XVisualInfo* visualInfo)
         samples = 0;
     }
 
+    if ((sfglx_ext_EXT_framebuffer_sRGB == sfglx_LOAD_SUCCEEDED) || (sfglx_ext_ARB_framebuffer_sRGB == sfglx_LOAD_SUCCEEDED))
+    {
+        glXGetConfig(m_display, visualInfo, GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, &sRgb);
+    }
+    else
+    {
+        sRgb = 0;
+    }
+
     m_settings.depthBits         = static_cast<unsigned int>(depth);
     m_settings.stencilBits       = static_cast<unsigned int>(stencil);
     m_settings.antialiasingLevel = multiSampling ? samples : 0;
+    m_settings.sRgbCapable       = (sRgb == True);
 }
 
 
@@ -425,7 +444,6 @@ void GlxContext::updateSettingsFromWindow()
 void GlxContext::createSurface(GlxContext* shared, unsigned int width, unsigned int height, unsigned int bitsPerPixel)
 {
     m_display = OpenDisplay();
-    m_connection = XGetXCBConnection(m_display);
 
     // Choose the visual according to the context settings
     XVisualInfo visualInfo = selectBestVisual(m_display, bitsPerPixel, m_settings);
@@ -463,8 +481,11 @@ void GlxContext::createSurface(GlxContext* shared, unsigned int width, unsigned 
                 if (visual->visualid == visualInfo.visualid)
                 {
                     config = &configs[i];
+                    XFree(visual);
                     break;
                 }
+
+                XFree(visual);
             }
 
             if (config)
@@ -491,28 +512,22 @@ void GlxContext::createSurface(GlxContext* shared, unsigned int width, unsigned 
     }
 
     // If pbuffers are not available we use a hidden window as the off-screen surface to draw to
-    xcb_screen_t* screen = XCBScreenOfDisplay(m_connection, DefaultScreen(m_display));
+    int screen = DefaultScreen(m_display);
 
     // Define the window attributes
-    xcb_colormap_t colormap = xcb_generate_id(m_connection);
-    xcb_create_colormap(m_connection, XCB_COLORMAP_ALLOC_NONE, colormap, screen->root, visualInfo.visualid);
-    const uint32_t value_list[] = {colormap};
+    XSetWindowAttributes attributes;
+    attributes.colormap = XCreateColormap(m_display, RootWindow(m_display, screen), visualInfo.visual, AllocNone);
 
-    // Create a dummy window (disabled and hidden)
-    m_window = xcb_generate_id(m_connection);
-    xcb_create_window(
-        m_connection,
-        static_cast<uint8_t>(visualInfo.depth),
-        m_window,
-        screen->root,
-        0, 0,
-        width, height,
-        0,
-        XCB_WINDOW_CLASS_INPUT_OUTPUT,
-        visualInfo.visualid,
-        XCB_CW_COLORMAP,
-        value_list
-    );
+    m_window = XCreateWindow(m_display,
+                             RootWindow(m_display, screen),
+                             0, 0,
+                             width, height,
+                             0,
+                             DefaultDepth(m_display, screen),
+                             InputOutput,
+                             visualInfo.visual,
+                             CWColormap,
+                             &attributes);
 
     m_ownsWindow = true;
 
@@ -524,7 +539,6 @@ void GlxContext::createSurface(GlxContext* shared, unsigned int width, unsigned 
 void GlxContext::createSurface(::Window window)
 {
     m_display = OpenDisplay();
-    m_connection = XGetXCBConnection(m_display);
 
     // A window already exists, so just use it
     m_window = window;
@@ -621,8 +635,11 @@ void GlxContext::createContext(GlxContext* shared)
             if (visual->visualid == visualInfo->visualid)
             {
                 config = &configs[i];
+                XFree(visual);
                 break;
             }
+
+            XFree(visual);
         }
 
         if (!config)

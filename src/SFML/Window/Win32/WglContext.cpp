@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2015 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -303,6 +303,18 @@ int WglContext::selectBestPixelFormat(HDC deviceContext, unsigned int bitsPerPix
                     }
                 }
 
+                int sRgbCapableValue = 0;
+                if ((sfwgl_ext_ARB_framebuffer_sRGB == sfwgl_LOAD_SUCCEEDED) || (sfwgl_ext_EXT_framebuffer_sRGB == sfwgl_LOAD_SUCCEEDED))
+                {
+                    const int sRgbCapableAttribute = WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB;
+
+                    if (!wglGetPixelFormatAttribivARB(deviceContext, formats[i], PFD_MAIN_PLANE, 1, &sRgbCapableAttribute, &sRgbCapableValue))
+                    {
+                        err() << "Failed to retrieve pixel format sRGB capability information: " << getErrorString(GetLastError()).toAnsiString() << std::endl;
+                        break;
+                    }
+                }
+
                 if (pbuffer)
                 {
                     const int pbufferAttributes[] =
@@ -324,7 +336,7 @@ int WglContext::selectBestPixelFormat(HDC deviceContext, unsigned int bitsPerPix
 
                 // Evaluate the current configuration
                 int color = values[0] + values[1] + values[2] + values[3];
-                int score = evaluateFormat(bitsPerPixel, settings, color, values[4], values[5], sampleValues[0] ? sampleValues[1] : 0, values[6] == WGL_FULL_ACCELERATION_ARB);
+                int score = evaluateFormat(bitsPerPixel, settings, color, values[4], values[5], sampleValues[0] ? sampleValues[1] : 0, values[6] == WGL_FULL_ACCELERATION_ARB, sRgbCapableValue == TRUE);
 
                 // Keep it if it's better than the current best
                 if (score < bestScore)
@@ -443,6 +455,26 @@ void WglContext::updateSettingsFromPixelFormat()
         else
         {
             m_settings.antialiasingLevel = 0;
+        }
+
+        if ((sfwgl_ext_ARB_framebuffer_sRGB == sfwgl_LOAD_SUCCEEDED) || (sfwgl_ext_EXT_framebuffer_sRGB == sfwgl_LOAD_SUCCEEDED))
+        {
+            const int sRgbCapableAttribute = WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB;
+            int sRgbCapableValue = 0;
+
+            if (wglGetPixelFormatAttribivARB(m_deviceContext, format, PFD_MAIN_PLANE, 1, &sRgbCapableAttribute, &sRgbCapableValue))
+            {
+                m_settings.sRgbCapable = (sRgbCapableValue == TRUE);
+            }
+            else
+            {
+                err() << "Failed to retrieve pixel format sRGB capability information: " << getErrorString(GetLastError()).toAnsiString() << std::endl;
+                m_settings.sRgbCapable = false;
+            }
+        }
+        else
+        {
+            m_settings.sRgbCapable = false;
         }
     }
     else

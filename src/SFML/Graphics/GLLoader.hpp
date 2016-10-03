@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2015 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -182,7 +182,9 @@ extern int sfogl_ext_ARB_vertex_shader;
 extern int sfogl_ext_ARB_fragment_shader;
 extern int sfogl_ext_ARB_texture_non_power_of_two;
 extern int sfogl_ext_EXT_blend_equation_separate;
+extern int sfogl_ext_EXT_texture_sRGB;
 extern int sfogl_ext_EXT_framebuffer_object;
+extern int sfogl_ext_ARB_geometry_shader4;
 
 #define GL_CLAMP_TO_EDGE_SGIS 0x812F
 
@@ -308,6 +310,23 @@ extern int sfogl_ext_EXT_framebuffer_object;
 #define GL_BLEND_EQUATION_ALPHA_EXT 0x883D
 #define GL_BLEND_EQUATION_RGB_EXT 0x8009
 
+#define GL_COMPRESSED_SLUMINANCE_ALPHA_EXT 0x8C4B
+#define GL_COMPRESSED_SLUMINANCE_EXT 0x8C4A
+#define GL_COMPRESSED_SRGB_ALPHA_EXT 0x8C49
+#define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT 0x8C4D
+#define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT 0x8C4E
+#define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT 0x8C4F
+#define GL_COMPRESSED_SRGB_EXT 0x8C48
+#define GL_COMPRESSED_SRGB_S3TC_DXT1_EXT 0x8C4C
+#define GL_SLUMINANCE8_ALPHA8_EXT 0x8C45
+#define GL_SLUMINANCE8_EXT 0x8C47
+#define GL_SLUMINANCE_ALPHA_EXT 0x8C44
+#define GL_SLUMINANCE_EXT 0x8C46
+#define GL_SRGB8_ALPHA8_EXT 0x8C43
+#define GL_SRGB8_EXT 0x8C41
+#define GL_SRGB_ALPHA_EXT 0x8C42
+#define GL_SRGB_EXT 0x8C40
+
 #define GL_COLOR_ATTACHMENT0_EXT 0x8CE0
 #define GL_COLOR_ATTACHMENT10_EXT 0x8CEA
 #define GL_COLOR_ATTACHMENT11_EXT 0x8CEB
@@ -359,6 +378,27 @@ extern int sfogl_ext_EXT_framebuffer_object;
 #define GL_STENCIL_INDEX1_EXT 0x8D46
 #define GL_STENCIL_INDEX4_EXT 0x8D47
 #define GL_STENCIL_INDEX8_EXT 0x8D48
+
+#define GL_FRAMEBUFFER_ATTACHMENT_LAYERED_ARB 0x8DA7
+#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER 0x8CD4
+#define GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT_ARB 0x8DA9
+#define GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS_ARB 0x8DA8
+#define GL_GEOMETRY_INPUT_TYPE_ARB 0x8DDB
+#define GL_GEOMETRY_OUTPUT_TYPE_ARB 0x8DDC
+#define GL_GEOMETRY_SHADER_ARB 0x8DD9
+#define GL_GEOMETRY_VERTICES_OUT_ARB 0x8DDA
+#define GL_LINES_ADJACENCY_ARB 0x000A
+#define GL_LINE_STRIP_ADJACENCY_ARB 0x000B
+#define GL_MAX_GEOMETRY_OUTPUT_VERTICES_ARB 0x8DE0
+#define GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS_ARB 0x8C29
+#define GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_ARB 0x8DE1
+#define GL_MAX_GEOMETRY_UNIFORM_COMPONENTS_ARB 0x8DDF
+#define GL_MAX_GEOMETRY_VARYING_COMPONENTS_ARB 0x8DDD
+#define GL_MAX_VARYING_COMPONENTS 0x8B4B
+#define GL_MAX_VERTEX_VARYING_COMPONENTS_ARB 0x8DDE
+#define GL_PROGRAM_POINT_SIZE_ARB 0x8642
+#define GL_TRIANGLES_ADJACENCY_ARB 0x000C
+#define GL_TRIANGLE_STRIP_ADJACENCY_ARB 0x000D
 
 #define GL_2D 0x0600
 #define GL_2_BYTES 0x1407
@@ -1163,6 +1203,7 @@ extern void (GL_FUNCPTR *sf_ptrc_glBlendEquationSeparateEXT)(GLenum, GLenum);
 #define glBlendEquationSeparateEXT sf_ptrc_glBlendEquationSeparateEXT
 #endif // GL_EXT_blend_equation_separate
 
+
 #ifndef GL_EXT_framebuffer_object
 #define GL_EXT_framebuffer_object 1
 extern void (GL_FUNCPTR *sf_ptrc_glBindFramebufferEXT)(GLenum, GLuint);
@@ -1200,6 +1241,18 @@ extern GLboolean (GL_FUNCPTR *sf_ptrc_glIsRenderbufferEXT)(GLuint);
 extern void (GL_FUNCPTR *sf_ptrc_glRenderbufferStorageEXT)(GLenum, GLenum, GLsizei, GLsizei);
 #define glRenderbufferStorageEXT sf_ptrc_glRenderbufferStorageEXT
 #endif // GL_EXT_framebuffer_object
+
+#ifndef GL_ARB_geometry_shader4
+#define GL_ARB_geometry_shader4 1
+extern void (GL_FUNCPTR *sf_ptrc_glFramebufferTextureARB)(GLenum, GLenum, GLuint, GLint);
+#define glFramebufferTextureARB sf_ptrc_glFramebufferTextureARB
+extern void (GL_FUNCPTR *sf_ptrc_glFramebufferTextureFaceARB)(GLenum, GLenum, GLuint, GLint, GLenum);
+#define glFramebufferTextureFaceARB sf_ptrc_glFramebufferTextureFaceARB
+extern void (GL_FUNCPTR *sf_ptrc_glFramebufferTextureLayerARB)(GLenum, GLenum, GLuint, GLint, GLint);
+#define glFramebufferTextureLayerARB sf_ptrc_glFramebufferTextureLayerARB
+extern void (GL_FUNCPTR *sf_ptrc_glProgramParameteriARB)(GLuint, GLenum, GLint);
+#define glProgramParameteriARB sf_ptrc_glProgramParameteriARB
+#endif // GL_ARB_geometry_shader4
 
 GLAPI void APIENTRY glAccum(GLenum, GLfloat);
 GLAPI void APIENTRY glAlphaFunc(GLenum, GLfloat);

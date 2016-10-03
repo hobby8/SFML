@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2015 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -144,6 +144,8 @@ extern "C" {
 extern int sfglx_ext_EXT_swap_control;
 extern int sfglx_ext_MESA_swap_control;
 extern int sfglx_ext_SGI_swap_control;
+extern int sfglx_ext_EXT_framebuffer_sRGB;
+extern int sfglx_ext_ARB_framebuffer_sRGB;
 extern int sfglx_ext_ARB_multisample;
 extern int sfglx_ext_SGIX_pbuffer;
 extern int sfglx_ext_ARB_create_context;
@@ -151,6 +153,10 @@ extern int sfglx_ext_ARB_create_context_profile;
 
 #define GLX_MAX_SWAP_INTERVAL_EXT 0x20F2
 #define GLX_SWAP_INTERVAL_EXT 0x20F1
+
+#define GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT 0x20B2
+
+#define GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20B2
 
 #define GLX_SAMPLES_ARB 100001
 #define GLX_SAMPLE_BUFFERS_ARB 100000
