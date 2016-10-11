@@ -36,6 +36,67 @@
 #include <string>
 #include <cstring>
 
+#ifdef NO_JOYSTICK  // get rid of libudev dependency
+
+namespace sf
+{
+namespace priv
+{
+
+JoystickImpl::JoystickImpl() :
+m_file(-1)
+{
+    std::fill(m_mapping, m_mapping + ABS_MAX + 1, 0);
+}
+
+void JoystickImpl::initialize()
+{
+    sf::err() << "Joystick support has been dropped" << std::endl;
+    return;
+}
+
+void JoystickImpl::cleanup()
+{
+}
+
+bool JoystickImpl::isConnected(unsigned int index)
+{
+    return false;
+}
+
+////////////////////////////////////////////////////////////
+bool JoystickImpl::open(unsigned int index)
+{
+    return false;
+}
+
+void JoystickImpl::close()
+{
+}
+
+JoystickCaps JoystickImpl::getCapabilities() const
+{
+    JoystickCaps caps;
+    return caps;
+}
+
+Joystick::Identification JoystickImpl::getIdentification() const
+{
+    return m_identification;
+}
+
+JoystickState JoystickImpl::JoystickImpl::update()
+{
+    m_state = JoystickState();
+    return m_state;
+}
+
+} // namespace priv
+
+} // namespace sf
+
+#else	// !defined(NO_JOYSTICK)
+
 namespace
 {
     udev* udevContext = 0;
@@ -706,3 +767,5 @@ JoystickState JoystickImpl::JoystickImpl::update()
 } // namespace priv
 
 } // namespace sf
+
+#endif	// NO_JOYSTICK
