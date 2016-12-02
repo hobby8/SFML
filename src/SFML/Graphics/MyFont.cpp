@@ -484,6 +484,8 @@ void MyFont::cleanup()
 ////////////////////////////////////////////////////////////
 MyGlyph MyFont::loadGlyph(Uint32 codePoint, unsigned int characterSize, bool bold) const
 {
+    // Note: major code duplication with rasterizeGlyphAsImage(), refactor after rebasing from master
+
     // The glyph to return
     MyGlyph glyph;
 
@@ -632,6 +634,107 @@ MyGlyph MyFont::loadGlyph(Uint32 codePoint, unsigned int characterSize, bool bol
 
     // Done :)
     return glyph;
+}
+
+
+////////////////////////////////////////////////////////////
+Image MyFont::rasterizeGlyphAsImage(Uint32 codePoint, unsigned int characterSize, bool bold) const
+{
+    // Note: major code duplication with loadGlyph(), refactor after rebasing from master
+
+    // The image to return
+    Image image;
+
+    // First, transform our ugly void* to a FT_Face
+    FT_Face face = static_cast<FT_Face>(m_face);
+    if (!face)
+        return image;
+
+    // Set the character size
+    if (!setCurrentSize(characterSize))
+        return image;
+
+    // Load the glyph corresponding to the code point
+    if (FT_Load_Char(face, codePoint, FT_LOAD_TARGET_NORMAL | FT_LOAD_FORCE_AUTOHINT) != 0)
+        return image;
+
+    // Retrieve the glyph
+    FT_Glyph glyphDesc;
+    if (FT_Get_Glyph(face->glyph, &glyphDesc) != 0)
+        return image;
+
+    // Apply bold if necessary -- first technique using outline (highest quality)
+    FT_Pos weight = 1 << 6;
+    bool outline = (glyphDesc->format == FT_GLYPH_FORMAT_OUTLINE);
+    if (bold && outline)
+    {
+        FT_OutlineGlyph outlineGlyph = (FT_OutlineGlyph)glyphDesc;
+        FT_Outline_Embolden(&outlineGlyph->outline, weight);
+    }
+
+    // Convert the glyph to a bitmap (i.e. rasterize it)
+    FT_Glyph_To_Bitmap(&glyphDesc, FT_RENDER_MODE_NORMAL, 0, 1);
+    FT_Bitmap& bitmap = reinterpret_cast<FT_BitmapGlyph>(glyphDesc)->bitmap;
+
+    // Apply bold if necessary -- fallback technique using bitmap (lower quality)
+    if (bold && !outline)
+    {
+        FT_Bitmap_Embolden(static_cast<FT_Library>(m_library), &bitmap, weight, weight);
+    }
+
+    int width  = bitmap.width;
+    int height = bitmap.rows;
+
+    if ((width > 0) && (height > 0))
+    {
+        //// Compute the glyph's bounding box
+        //FloatRect bounds;
+        //bounds.left   = static_cast<float>(face->glyph->metrics.horiBearingX) / static_cast<float>(1 << 6);
+        //bounds.top    = -static_cast<float>(face->glyph->metrics.horiBearingY) / static_cast<float>(1 << 6);
+        //bounds.width  = static_cast<float>(face->glyph->metrics.width) / static_cast<float>(1 << 6);
+        //bounds.height = static_cast<float>(face->glyph->metrics.height) / static_cast<float>(1 << 6);
+
+        // Extract the glyph's pixels from the bitmap
+        m_pixelBuffer.resize(width * height * 4, 255);
+        const Uint8* pixels = bitmap.buffer;
+        if (bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
+        {
+            // Pixels are 1 bit monochrome values
+            for (int y = 0; y < height; ++y)
+            {
+                for (int x = 0; x < width; ++x)
+                {
+                    // The color channels remain white, just fill the alpha channel
+                    std::size_t index = (x + y * width) * 4 + 3;
+                    m_pixelBuffer[index] = ((pixels[x / 8]) & (1 << (7 - (x % 8)))) ? 255 : 0;
+                }
+                pixels += bitmap.pitch;
+            }
+        }
+        else
+        {
+            // Pixels are 8 bits gray levels
+            for (int y = 0; y < height; ++y)
+            {
+                for (int x = 0; x < width; ++x)
+                {
+                    // The color channels remain white, just fill the alpha channel
+                    std::size_t index = (x + y * width) * 4 + 3;
+                    m_pixelBuffer[index] = pixels[x];
+                }
+                pixels += bitmap.pitch;
+            }
+        }
+
+        // Write the pixels to the image
+        image.create(width, height, &m_pixelBuffer[0]);
+    }
+
+    // Delete the FT glyph
+    FT_Done_Glyph(glyphDesc);
+
+    // Done :)
+    return image;
 }
 
 

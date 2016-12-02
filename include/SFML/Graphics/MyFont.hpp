@@ -177,6 +177,18 @@ public:
     const MyGlyph& getGlyph(Uint32 codePoint, unsigned int characterSize, bool bold) const;
 
     ////////////////////////////////////////////////////////////
+    /// \brief Rasterize a glyph and return an image
+    ///
+    /// \param codePoint     Unicode code point of the character to load
+    /// \param characterSize Reference character size
+    /// \param bold          Retrieve the bold version or the regular one?
+    ///
+    /// \return An image representing the rasterized \a codePoint and \a characterSize
+    ///
+    ////////////////////////////////////////////////////////////
+    Image rasterizeGlyphAsImage(Uint32 codePoint, unsigned int characterSize, bool bold) const;
+
+    ////////////////////////////////////////////////////////////
     /// \brief Get the kerning offset of two glyphs
     ///
     /// The kerning is an extra offset (negative) to apply between two
