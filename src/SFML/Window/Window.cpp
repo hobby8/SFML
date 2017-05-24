@@ -245,6 +245,13 @@ void Window::setSize(const Vector2u& size)
         // Notify the derived class
         onResize();
     }
+#ifdef __EMSCRIPTEN__
+    else
+    {
+        m_size.x = size.x;
+        m_size.y = size.y;
+    }
+#endif
 }
 
 

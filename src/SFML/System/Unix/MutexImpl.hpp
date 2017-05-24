@@ -29,7 +29,9 @@
 // Headers
 ////////////////////////////////////////////////////////////
 #include <SFML/System/NonCopyable.hpp>
+#ifndef __EMSCRIPTEN__
 #include <pthread.h>
+#endif
 
 
 namespace sf
@@ -72,7 +74,9 @@ private:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
+#ifndef __EMSCRIPTEN__
     pthread_mutex_t m_mutex; ///< pthread handle of the mutex
+#endif
 };
 
 } // namespace priv

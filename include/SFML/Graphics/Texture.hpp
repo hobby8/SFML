@@ -221,6 +221,10 @@ public:
     ////////////////////////////////////////////////////////////
     Vector2u getSize() const;
 
+#ifdef __EMSCRIPTEN__
+    Vector2u getActualSize() const { return m_actualSize; }
+#endif
+
     ////////////////////////////////////////////////////////////
     /// \brief Copy the texture pixels to an image
     ///

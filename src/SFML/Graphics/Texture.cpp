@@ -37,6 +37,10 @@
 #include <cassert>
 #include <cstring>
 
+#ifdef __EMSCRIPTEN__
+void textureGetPixelsUsingGles2(const sf::Texture &texture, unsigned char *pixels, int pixelsBufferSize);
+#endif
+
 
 namespace
 {
@@ -174,6 +178,9 @@ bool Texture::create(unsigned int width, unsigned int height)
     priv::TextureSaver save;
 
     static bool textureEdgeClamp = GLEXT_texture_edge_clamp || GLEXT_EXT_texture_edge_clamp;
+#ifdef __EMSCRIPTEN__
+	textureEdgeClamp = true;	// so that GLEXT_GL_CLAMP_TO_EDGE == 0x812f will be used, see https://www.gamedev.net/topic/191794-gl_clamp_to_edge---non-existing/
+#endif
 
     if (!m_isRepeated && !textureEdgeClamp)
     {
@@ -341,7 +348,7 @@ Image Texture::copyToImage() const
     // Create an array of pixels
     std::vector<Uint8> pixels(m_size.x * m_size.y * 4);
 
-#ifdef SFML_OPENGL_ES
+#if defined(SFML_OPENGL_ES)
 
     // OpenGL ES doesn't have the glGetTexImage function, the only way to read
     // from a texture is to bind it to a FBO and use glReadPixels
@@ -360,6 +367,8 @@ Image Texture::copyToImage() const
         glCheck(GLEXT_glBindFramebuffer(GLEXT_GL_FRAMEBUFFER, previousFrameBuffer));
     }
 
+#elif defined(__EMSCRIPTEN__)
+	textureGetPixelsUsingGles2(*this, &pixels[0], int(pixels.size()));
 #else
 
     if ((m_size == m_actualSize) && !m_pixelsFlipped)
@@ -550,6 +559,9 @@ void Texture::setRepeated(bool repeated)
             priv::TextureSaver save;
 
             static bool textureEdgeClamp = GLEXT_texture_edge_clamp || GLEXT_EXT_texture_edge_clamp;
+#ifdef __EMSCRIPTEN__
+			textureEdgeClamp = true;	// so that GLEXT_GL_CLAMP_TO_EDGE == 0x812f will be used, see https://www.gamedev.net/topic/191794-gl_clamp_to_edge---non-existing/
+#endif
 
             if (!m_isRepeated && !textureEdgeClamp)
             {
@@ -633,6 +645,9 @@ void Texture::bind(const Texture* texture, CoordinateType coordinateType)
     if (texture && texture->m_texture)
     {
         // Bind the texture
+//#ifdef __EMSCRIPTEN__
+//		err() << "LOGGING: Going to call glBindTexture() with texture->m_texture=" << texture->m_texture << std::endl;
+//#endif
         glCheck(glBindTexture(GL_TEXTURE_2D, texture->m_texture));
 
         // Check if we need to define a special texture matrix

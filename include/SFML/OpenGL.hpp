@@ -71,6 +71,15 @@
     // We're not using OpenGL ES 2+ yet, but we can use the sRGB extension
     #include <GLES2/gl2ext.h>
 
+#elif defined(__EMSCRIPTEN__)
+
+    #if defined(SFML_OPENGL_ES)
+        #include <GLES/gl.h>
+        #include <GLES/glext.h>
+    #else
+        #include <GL/gl.h>
+    #endif
+
 #endif
 
 

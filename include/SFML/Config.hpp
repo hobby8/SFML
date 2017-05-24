@@ -86,6 +86,11 @@
         // FreeBSD
         #define SFML_SYSTEM_FREEBSD
 
+    #elif defined(__EMSCRIPTEN__)
+
+        // Emscripten
+        #define SFML_SYSTEM_EMSCRIPTEN
+
     #else
 
         // Unsupported UNIX system

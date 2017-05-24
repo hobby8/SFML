@@ -35,6 +35,12 @@
 #include <cassert>
 #include <iostream>
 
+#ifdef __EMSCRIPTEN__
+void renderUsingGles2(sf::RenderTarget &renderTarget, unsigned int mode, const sf::Vertex *vertices,
+	int verticesCount, const sf::Texture *texture);
+#endif
+
+
 namespace
 {
     // Convert an sf::BlendMode::Factor constant to the corresponding OpenGL constant.
@@ -98,7 +104,9 @@ RenderTarget::~RenderTarget()
 ////////////////////////////////////////////////////////////
 void RenderTarget::clear(const Color& color)
 {
+#ifndef __EMSCRIPTEN__
     if (activate(true))
+#endif
     {
         // Unbind texture to fix RenderTexture preventing clear
         applyTexture(NULL);
@@ -214,7 +222,9 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
         #define GL_QUADS 0
     #endif
 
+#ifndef __EMSCRIPTEN__
     if (activate(true))
+#endif
     {
         // First set the persistent OpenGL states if it's the very first call
         if (!m_cache.glStatesSet)
@@ -222,6 +232,9 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 
         // Check if the vertex count is low enough so that we can pre-transform them
         bool useVertexCache = (vertexCount <= StatesCache::VertexCacheSize);
+#ifdef __EMSCRIPTEN__
+		useVertexCache = false;
+#endif
         if (useVertexCache)
         {
             // Pre-transform the vertices and store them into the vertex cache
@@ -252,12 +265,19 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 
         // Apply the texture
         Uint64 textureId = states.texture ? states.texture->m_cacheId : 0;
+//#ifdef __EMSCRIPTEN__
+//		if (textureId != 0)
+//			err() << "LOGGING: Going to call applyTexture() with textureId=" << textureId <<
+//				" if not already in m_cache.lastTextureId" << std::endl;
+//#endif
+#ifndef __EMSCRIPTEN__
         if (textureId != m_cache.lastTextureId)
             applyTexture(states.texture);
 
         // Apply the shader
         if (states.shader)
             applyShader(states.shader);
+#endif	// !defined(__EMSCRIPTEN__)
 
         // If we pre-transform the vertices, we must use our internal vertex cache
         if (useVertexCache)
@@ -269,6 +289,7 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
                 vertices = NULL;
         }
 
+#ifndef __EMSCRIPTEN__
         // Check if texture coordinates array is needed, and update client state accordingly
         bool enableTexCoordsArray = (states.texture || states.shader);
         if (enableTexCoordsArray != m_cache.texCoordsArrayEnabled)
@@ -289,15 +310,40 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
             if (enableTexCoordsArray)
                 glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 12));
         }
+#endif
 
         // Find the OpenGL primitive type
         static const GLenum modes[] = {GL_POINTS, GL_LINES, GL_LINE_STRIP, GL_TRIANGLES,
                                        GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_QUADS};
         GLenum mode = modes[type];
 
+#ifndef __EMSCRIPTEN__
         // Draw the primitives
         glCheck(glDrawArrays(mode, 0, vertexCount));
+#else
+		if (!vertices)	// should not occur as we disabled useVertexCache
+			vertices = m_cache.vertexCache;
 
+//		int texCoordsFactorX = (states.texture) ? states.texture->getSize().x : 1;
+//		int texCoordsFactorY = (states.texture) ? states.texture->getSize().y : 1;
+//		glCheck(glBegin(mode));
+//		for (size_t i = 0; i < vertexCount; i++)
+//		{
+//			const Vertex &vertex = vertices[i];
+////if (!enableTexCoordsArray)	// TBD #$$$$$$$##########
+//			glColor4f(vertex.color.r/255.f, vertex.color.g/255.f, vertex.color.b/255.f, vertex.color.a/255.f);
+//			if (enableTexCoordsArray)
+//				glTexCoord2f(vertex.texCoords.x, vertex.texCoords.y);
+//				//glTexCoord2f(vertex.texCoords.x / texCoordsFactorX, vertex.texCoords.y / texCoordsFactorY);
+//			glVertex2f(vertex.position.x, vertex.position.y);
+//		}
+//		glCheck(glEnd());
+
+	renderUsingGles2(*this, mode, vertices, vertexCount, states.texture);
+
+#endif
+
+#ifndef __EMSCRIPTEN__
         // Unbind the shader, if any
         if (states.shader)
             applyShader(NULL);
@@ -306,6 +352,7 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
         // This prevents a bug where some drivers do not clear RenderTextures properly.
         if (states.texture && states.texture->m_fboAttachment)
             applyTexture(NULL);
+#endif
 
         // Update the cache
         m_cache.useVertexCache = useVertexCache;
@@ -390,9 +437,11 @@ void RenderTarget::resetGLStates()
         glCheck(glEnable(GL_TEXTURE_2D));
         glCheck(glEnable(GL_BLEND));
         glCheck(glMatrixMode(GL_MODELVIEW));
+#ifndef __EMSCRIPTEN__
         glCheck(glEnableClientState(GL_VERTEX_ARRAY));
         glCheck(glEnableClientState(GL_COLOR_ARRAY));
         glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+#endif
         m_cache.glStatesSet = true;
 
         m_cache.blendModeEnabled = true;
@@ -515,7 +564,11 @@ void RenderTarget::applyTransform(const Transform& transform)
 ////////////////////////////////////////////////////////////
 void RenderTarget::applyTexture(const Texture* texture)
 {
+//#ifndef __EMSCRIPTEN__
     Texture::bind(texture, Texture::Pixels);
+//#else
+//    Texture::bind(texture, Texture::Normalized);
+//#endif
 
     m_cache.lastTextureId = texture ? texture->m_cacheId : 0;
 }

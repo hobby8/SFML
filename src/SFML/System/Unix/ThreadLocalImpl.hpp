@@ -29,7 +29,9 @@
 // Headers
 ////////////////////////////////////////////////////////////
 #include <SFML/System/NonCopyable.hpp>
+#ifndef __EMSCRIPTEN__
 #include <pthread.h>
+#endif
 
 
 namespace sf
@@ -76,7 +78,11 @@ private:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
+#ifndef __EMSCRIPTEN__
     pthread_key_t m_key; ///< Index of our thread-local storage slot
+#else
+    void *m_value;
+#endif
 };
 
 } // namespace priv
