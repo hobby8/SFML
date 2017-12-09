@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2016 Marco Antognini (antognini.marco@gmail.com),
+// Copyright (C) 2007-2017 Marco Antognini (antognini.marco@gmail.com),
 //                         Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
@@ -368,6 +368,13 @@
 
     // Forward to our view
     [m_oglView setCursorGrabbed:grabbed];
+}
+
+
+////////////////////////////////////////////////////////
+-(void)setCursor:(NSCursor*)cursor
+{
+    return [m_oglView setCursor:cursor];
 }
 
 

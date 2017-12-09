@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2017 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -25,8 +25,8 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
+#include <SFML/Window/Unix/WindowImplX11.hpp> // important to be included first (conflict with None)
 #include <SFML/Window/Unix/GlxContext.hpp>
-#include <SFML/Window/Unix/WindowImplX11.hpp>
 #include <SFML/Window/Unix/Display.hpp>
 #include <SFML/System/Mutex.hpp>
 #include <SFML/System/Lock.hpp>
@@ -105,10 +105,11 @@ m_ownsWindow(false)
     // Save the creation settings
     m_settings = ContextSettings();
 
-    // Make sure that extensions are initialized if this is not the shared context
-    // The shared context is the context used to initialize the extensions
-    if (shared && shared->m_display)
-        ensureExtensionsInit(shared->m_display, DefaultScreen(shared->m_display));
+    // Open the connection with the X server
+    m_display = OpenDisplay();
+
+    // Make sure that extensions are initialized
+    ensureExtensionsInit(m_display, DefaultScreen(m_display));
 
     // Create the rendering surface (window or pbuffer if supported)
     createSurface(shared, 1, 1, VideoMode::getDesktopMode().bitsPerPixel);
@@ -129,10 +130,11 @@ m_ownsWindow(false)
     // Save the creation settings
     m_settings = settings;
 
-    // Make sure that extensions are initialized if this is not the shared context
-    // The shared context is the context used to initialize the extensions
-    if (shared && shared->m_display)
-        ensureExtensionsInit(shared->m_display, DefaultScreen(shared->m_display));
+    // Open the connection with the X server
+    m_display = OpenDisplay();
+
+    // Make sure that extensions are initialized
+    ensureExtensionsInit(m_display, DefaultScreen(m_display));
 
     // Create the rendering surface from the owner window
     createSurface(static_cast< ::Window>(owner->getSystemHandle()));
@@ -153,10 +155,11 @@ m_ownsWindow(false)
     // Save the creation settings
     m_settings = settings;
 
-    // Make sure that extensions are initialized if this is not the shared context
-    // The shared context is the context used to initialize the extensions
-    if (shared && shared->m_display)
-        ensureExtensionsInit(shared->m_display, DefaultScreen(shared->m_display));
+    // Open the connection with the X server
+    m_display = OpenDisplay();
+
+    // Make sure that extensions are initialized
+    ensureExtensionsInit(m_display, DefaultScreen(m_display));
 
     // Create the rendering surface (window or pbuffer if supported)
     createSurface(shared, width, height, VideoMode::getDesktopMode().bitsPerPixel);
@@ -211,7 +214,7 @@ GlFunctionPointer GlxContext::getFunction(const char* name)
 
 
 ////////////////////////////////////////////////////////////
-bool GlxContext::makeCurrent()
+bool GlxContext::makeCurrent(bool current)
 {
     if (!m_context)
         return false;
@@ -222,13 +225,20 @@ bool GlxContext::makeCurrent()
 
     bool result = false;
 
-    if (m_pbuffer)
+    if (current)
     {
-        result = glXMakeContextCurrent(m_display, m_pbuffer, m_pbuffer, m_context);
+        if (m_pbuffer)
+        {
+            result = glXMakeContextCurrent(m_display, m_pbuffer, m_pbuffer, m_context);
+        }
+        else if (m_window)
+        {
+            result = glXMakeCurrent(m_display, m_window, m_context);
+        }
     }
-    else if (m_window)
+    else
     {
-        result = glXMakeCurrent(m_display, m_window, m_context);
+        result = glXMakeCurrent(m_display, None, NULL);
     }
 
 #if defined(GLX_DEBUGGING)
@@ -262,9 +272,6 @@ void GlxContext::display()
 ////////////////////////////////////////////////////////////
 void GlxContext::setVerticalSyncEnabled(bool enabled)
 {
-    // Make sure that extensions are initialized
-    ensureExtensionsInit(m_display, DefaultScreen(m_display));
-
     int result = 0;
 
     // Prioritize the EXT variant and fall back to MESA or SGI if needed
@@ -303,6 +310,9 @@ void GlxContext::setVerticalSyncEnabled(bool enabled)
 ////////////////////////////////////////////////////////////
 XVisualInfo GlxContext::selectBestVisual(::Display* display, unsigned int bitsPerPixel, const ContextSettings& settings)
 {
+    // Make sure that extensions are initialized
+    ensureExtensionsInit(display, DefaultScreen(display));
+
     // Retrieve all the visuals
     int count;
     XVisualInfo* visuals = XGetVisualInfo(display, 0, NULL, &count);
@@ -443,8 +453,6 @@ void GlxContext::updateSettingsFromWindow()
 ////////////////////////////////////////////////////////////
 void GlxContext::createSurface(GlxContext* shared, unsigned int width, unsigned int height, unsigned int bitsPerPixel)
 {
-    m_display = OpenDisplay();
-
     // Choose the visual according to the context settings
     XVisualInfo visualInfo = selectBestVisual(m_display, bitsPerPixel, m_settings);
 
@@ -538,8 +546,6 @@ void GlxContext::createSurface(GlxContext* shared, unsigned int width, unsigned 
 ////////////////////////////////////////////////////////////
 void GlxContext::createSurface(::Window window)
 {
-    m_display = OpenDisplay();
-
     // A window already exists, so just use it
     m_window = window;
 
@@ -686,6 +692,15 @@ void GlxContext::createContext(GlxContext* shared)
             // On an error, glXCreateContextAttribsARB will return 0 anyway
             GlxErrorHandler handler(m_display);
 
+            if (toShare)
+            {
+                if (!glXMakeCurrent(m_display, None, NULL))
+                {
+                    err() << "Failed to deactivate shared context before sharing" << std::endl;
+                    return;
+                }
+            }
+
             // Create the context
             m_context = glXCreateContextAttribsARB(m_display, *config, toShare, true, &attributes[0]);
 
@@ -731,6 +746,15 @@ void GlxContext::createContext(GlxContext* shared)
 #if defined(GLX_DEBUGGING)
     GlxErrorHandler handler(m_display);
 #endif
+
+        if (toShare)
+        {
+            if (!glXMakeCurrent(m_display, None, NULL))
+            {
+                err() << "Failed to deactivate shared context before sharing" << std::endl;
+                return;
+            }
+        }
 
         // Create the context, using the target window's visual
         m_context = glXCreateContext(m_display, visualInfo, toShare, true);

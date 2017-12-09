@@ -64,9 +64,26 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Android")
 
     # use the OpenGL ES implementation on Android
     set(OPENGL_ES 1)
+# comparing CMAKE_SYSTEM_NAME with "CYGWIN" generates a false warning depending on the CMake version
+# let's avoid it so the actual error is more visible
+elseif(${CYGWIN})
+    message(FATAL_ERROR "Unfortunately SFML doesn't support Cygwin's 'hybrid' status between both Windows and Linux derivatives.\nIf you insist on using the GCC, please use a standalone build of MinGW without the Cygwin environment instead.")
 else()
     message(FATAL_ERROR "Unsupported operating system or environment")
     return()
+endif()
+
+# check if OS or package system supports pkg-config
+# this could be e.g. macports on mac or msys2 on windows etc.
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_EXECUTABLE)
+    if(EXISTS "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}/pkgconfig")
+        set(SFML_OS_SUPPORTS_PKGCONFIG ON)
+        set(SFML_OS_PKGCONFIG_DIR "/lib${LIB_SUFFIX}/pkgconfig")
+    elseif(EXISTS "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
+        set(SFML_OS_SUPPORTS_PKGCONFIG ON)
+        set(SFML_OS_PKGCONFIG_DIR "/libdata/pkgconfig")
+    endif()
 endif()
 
 # detect the compiler and its version

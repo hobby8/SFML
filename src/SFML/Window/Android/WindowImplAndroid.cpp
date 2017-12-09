@@ -186,6 +186,13 @@ void WindowImplAndroid::setMouseCursorGrabbed(bool grabbed)
 
 
 ////////////////////////////////////////////////////////////
+void WindowImplAndroid::setMouseCursor(const CursorImpl& cursor)
+{
+    // Not applicable
+}
+
+
+////////////////////////////////////////////////////////////
 void WindowImplAndroid::setKeyRepeatEnabled(bool enabled)
 {
     // Not applicable
