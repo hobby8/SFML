@@ -499,6 +499,9 @@ protected:
 
 private:
 
+#ifdef __EMSCRIPTEN__
+public:
+#endif
     ////////////////////////////////////////////////////////////
     /// \brief Processes an event before it is sent to the user
     ///
@@ -512,6 +515,9 @@ private:
     ///
     ////////////////////////////////////////////////////////////
     bool filterEvent(const Event& event);
+#ifdef __EMSCRIPTEN__
+private:
+#endif
 
     ////////////////////////////////////////////////////////////
     /// \brief Perform some common internal initializations

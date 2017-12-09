@@ -41,6 +41,7 @@ std::vector<VideoMode> VideoModeImpl::getFullscreenModes()
 
     // Enumerate all available video modes for the primary display adapter
     DEVMODE win32Mode;
+    ZeroMemory(&win32Mode, sizeof(win32Mode));
     win32Mode.dmSize = sizeof(win32Mode);
     for (int count = 0; EnumDisplaySettings(NULL, count, &win32Mode); ++count)
     {
@@ -60,6 +61,7 @@ std::vector<VideoMode> VideoModeImpl::getFullscreenModes()
 VideoMode VideoModeImpl::getDesktopMode()
 {
     DEVMODE win32Mode;
+    ZeroMemory(&win32Mode, sizeof(win32Mode));
     win32Mode.dmSize = sizeof(win32Mode);
     EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &win32Mode);
 
