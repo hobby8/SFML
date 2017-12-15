@@ -190,6 +190,9 @@ bool Texture::create(unsigned int width, unsigned int height)
     }
 
     static bool textureSrgb = GLEXT_texture_sRGB;
+#ifdef __EMSCRIPTEN__
+    textureSrgb = false;	// to be on the safe side (haven't tested the original code)
+#endif
 
     if (m_sRgb && !textureSrgb)
     {
@@ -820,6 +823,12 @@ unsigned int Texture::getMaximumSize()
 
         TransientContextLock lock;
 
+#ifdef SFML_DEBUG
+        // hack for Emscripten: without the below, random errors are reported in glGetIntegerv(GL_MAX_TEXTURE_SIZE), glGenTextures() etc.
+        while (glGetError() != GL_NO_ERROR)
+        {
+        }
+#endif
         glCheck(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &size));
     }
 

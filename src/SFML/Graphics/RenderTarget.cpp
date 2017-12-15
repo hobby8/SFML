@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2017 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -105,7 +105,7 @@ RenderTarget::~RenderTarget()
 void RenderTarget::clear(const Color& color)
 {
 #ifndef __EMSCRIPTEN__
-    if (activate(true))
+    if (setActive(true))
 #endif
     {
         // Unbind texture to fix RenderTexture preventing clear
@@ -223,7 +223,7 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
     #endif
 
 #ifndef __EMSCRIPTEN__
-    if (activate(true))
+    if (setActive(true))
 #endif
     {
         // First set the persistent OpenGL states if it's the very first call
@@ -248,7 +248,7 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 
             // Since vertices are transformed, we must use an identity transform to render them
             if (!m_cache.useVertexCache)
-                applyTransform(Transform::Identity);
+                glCheck(glLoadIdentity());
         }
         else
         {
@@ -279,36 +279,38 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
             applyShader(states.shader);
 #endif	// !defined(__EMSCRIPTEN__)
 
-        // If we pre-transform the vertices, we must use our internal vertex cache
-        if (useVertexCache)
-        {
-            // ... and if we already used it previously, we don't need to set the pointers again
-            if (!m_cache.useVertexCache)
-                vertices = m_cache.vertexCache;
-            else
-                vertices = NULL;
-        }
-
-#ifndef __EMSCRIPTEN__
         // Check if texture coordinates array is needed, and update client state accordingly
         bool enableTexCoordsArray = (states.texture || states.shader);
+#ifndef __EMSCRIPTEN__
         if (enableTexCoordsArray != m_cache.texCoordsArrayEnabled)
         {
             if (enableTexCoordsArray)
                 glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
             else
                 glCheck(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-            m_cache.texCoordsArrayEnabled = enableTexCoordsArray;
         }
 
-        // Setup the pointers to the vertices' components
-        if (vertices)
+        // If we switch between non-cache and cache mode or enable texture
+        // coordinates we need to set up the pointers to the vertices' components
+        if (!useVertexCache || !m_cache.useVertexCache)
         {
             const char* data = reinterpret_cast<const char*>(vertices);
+
+            // If we pre-transform the vertices, we must use our internal vertex cache
+            if (useVertexCache)
+                data = reinterpret_cast<const char*>(m_cache.vertexCache);
+
             glCheck(glVertexPointer(2, GL_FLOAT, sizeof(Vertex), data + 0));
             glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), data + 8));
             if (enableTexCoordsArray)
                 glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 12));
+        }
+        else if (enableTexCoordsArray && !m_cache.texCoordsArrayEnabled)
+        {
+            // If we enter this block, we are already using our internal vertex cache
+            const char* data = reinterpret_cast<const char*>(m_cache.vertexCache);
+
+            glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 12));
         }
 #endif
 
@@ -356,6 +358,7 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 
         // Update the cache
         m_cache.useVertexCache = useVertexCache;
+        m_cache.texCoordsArrayEnabled = enableTexCoordsArray;
     }
 }
 
@@ -363,7 +366,7 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 ////////////////////////////////////////////////////////////
 void RenderTarget::pushGLStates()
 {
-    if (activate(true))
+    if (setActive(true))
     {
         #ifdef SFML_DEBUG
             // make sure that the user didn't leave an unchecked OpenGL error
@@ -395,7 +398,7 @@ void RenderTarget::pushGLStates()
 ////////////////////////////////////////////////////////////
 void RenderTarget::popGLStates()
 {
-    if (activate(true))
+    if (setActive(true))
     {
         glCheck(glMatrixMode(GL_PROJECTION));
         glCheck(glPopMatrix());
@@ -417,7 +420,7 @@ void RenderTarget::resetGLStates()
     // Check here to make sure a context change does not happen after activate(true)
     bool shaderAvailable = Shader::isAvailable();
 
-    if (activate(true))
+    if (setActive(true))
     {
         // Make sure that extensions are initialized
         priv::ensureExtensionsInit();
@@ -437,6 +440,7 @@ void RenderTarget::resetGLStates()
         glCheck(glEnable(GL_TEXTURE_2D));
         glCheck(glEnable(GL_BLEND));
         glCheck(glMatrixMode(GL_MODELVIEW));
+        glCheck(glLoadIdentity());
 #ifndef __EMSCRIPTEN__
         glCheck(glEnableClientState(GL_VERTEX_ARRAY));
         glCheck(glEnableClientState(GL_COLOR_ARRAY));
@@ -448,7 +452,6 @@ void RenderTarget::resetGLStates()
 
         // Apply the default SFML states
         applyBlendMode(BlendAlpha);
-        applyTransform(Transform::Identity);
         applyTexture(NULL);
         if (shaderAvailable)
             applyShader(NULL);
@@ -557,7 +560,10 @@ void RenderTarget::applyTransform(const Transform& transform)
 {
     // No need to call glMatrixMode(GL_MODELVIEW), it is always the
     // current mode (for optimization purpose, since it's the most used)
-    glCheck(glLoadMatrixf(transform.getMatrix()));
+    if (transform == Transform::Identity)
+        glCheck(glLoadIdentity());
+    else
+        glCheck(glLoadMatrixf(transform.getMatrix()));
 }
 
 
