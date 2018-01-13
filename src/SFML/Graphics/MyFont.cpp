@@ -508,7 +508,7 @@ MyGlyph MyFont::loadGlyph(Uint32 codePoint, unsigned int characterSize, bool bol
         return glyph;
 
     // Apply bold if necessary -- first technique using outline (highest quality)
-    FT_Pos weight = 1 << 6;
+    FT_Pos weight = characterSize * 2;	// SFML's original factor was 1 << 6;
     bool outline = (glyphDesc->format == FT_GLYPH_FORMAT_OUTLINE);
     if (bold && outline)
     {
