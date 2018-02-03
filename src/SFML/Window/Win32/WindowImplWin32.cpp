@@ -173,7 +173,7 @@ m_lastSize        (mode.width, mode.height),
 m_resizing        (false),
 m_surrogate       (0),
 m_mouseInside     (false),
-m_fullscreen      (style & Style::Fullscreen),
+m_fullscreen      ((style & Style::Fullscreen) != 0),
 m_cursorGrabbed   (m_fullscreen)
 {
     // Set that this process is DPI aware and can handle DPI scaling
@@ -810,6 +810,11 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Left;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.modifiersAvailable = true;
+            event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
+            event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
+            event.mouseButton.shift   = HIWORD(GetKeyState(VK_SHIFT))   != 0;
+            event.mouseButton.system  = HIWORD(GetKeyState(VK_LWIN)) || HIWORD(GetKeyState(VK_RWIN));
             pushEvent(event);
             break;
         }
@@ -822,6 +827,11 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Left;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.modifiersAvailable = true;
+            event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
+            event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
+            event.mouseButton.shift   = HIWORD(GetKeyState(VK_SHIFT))   != 0;
+            event.mouseButton.system  = HIWORD(GetKeyState(VK_LWIN)) || HIWORD(GetKeyState(VK_RWIN));
             pushEvent(event);
             break;
         }
@@ -834,6 +844,11 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Right;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.modifiersAvailable = true;
+            event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
+            event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
+            event.mouseButton.shift   = HIWORD(GetKeyState(VK_SHIFT))   != 0;
+            event.mouseButton.system  = HIWORD(GetKeyState(VK_LWIN)) || HIWORD(GetKeyState(VK_RWIN));
             pushEvent(event);
             break;
         }
@@ -846,6 +861,11 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Right;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.modifiersAvailable = true;
+            event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
+            event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
+            event.mouseButton.shift   = HIWORD(GetKeyState(VK_SHIFT))   != 0;
+            event.mouseButton.system  = HIWORD(GetKeyState(VK_LWIN)) || HIWORD(GetKeyState(VK_RWIN));
             pushEvent(event);
             break;
         }
@@ -858,6 +878,11 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Middle;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.modifiersAvailable = true;
+            event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
+            event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
+            event.mouseButton.shift   = HIWORD(GetKeyState(VK_SHIFT))   != 0;
+            event.mouseButton.system  = HIWORD(GetKeyState(VK_LWIN)) || HIWORD(GetKeyState(VK_RWIN));
             pushEvent(event);
             break;
         }
@@ -870,6 +895,11 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Middle;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.modifiersAvailable = true;
+            event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
+            event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
+            event.mouseButton.shift   = HIWORD(GetKeyState(VK_SHIFT))   != 0;
+            event.mouseButton.system  = HIWORD(GetKeyState(VK_LWIN)) || HIWORD(GetKeyState(VK_RWIN));
             pushEvent(event);
             break;
         }
@@ -882,6 +912,11 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = HIWORD(wParam) == XBUTTON1 ? Mouse::XButton1 : Mouse::XButton2;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.modifiersAvailable = true;
+            event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
+            event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
+            event.mouseButton.shift   = HIWORD(GetKeyState(VK_SHIFT))   != 0;
+            event.mouseButton.system  = HIWORD(GetKeyState(VK_LWIN)) || HIWORD(GetKeyState(VK_RWIN));
             pushEvent(event);
             break;
         }
@@ -894,6 +929,11 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = HIWORD(wParam) == XBUTTON1 ? Mouse::XButton1 : Mouse::XButton2;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.modifiersAvailable = true;
+            event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
+            event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
+            event.mouseButton.shift   = HIWORD(GetKeyState(VK_SHIFT))   != 0;
+            event.mouseButton.system  = HIWORD(GetKeyState(VK_LWIN)) || HIWORD(GetKeyState(VK_RWIN));
             pushEvent(event);
             break;
         }

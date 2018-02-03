@@ -97,6 +97,11 @@ public:
         Mouse::Button button; ///< Code of the button that has been pressed
         int           x;      ///< X position of the mouse pointer, relative to the left of the owner window
         int           y;      ///< Y position of the mouse pointer, relative to the top of the owner window
+        bool          modifiersAvailable;  ///< Whether alt, control, shift and system fields hold relevant information
+        bool          alt;     ///< If modifiersAvailable is true, is the Alt key pressed?
+        bool          control; ///< If modifiersAvailable is true, is the Control key pressed?
+        bool          shift;   ///< If modifiersAvailable is true, is the Shift key pressed?
+        bool          system;  ///< If modifiersAvailable is true, is the System key pressed?
     };
 
     ////////////////////////////////////////////////////////////

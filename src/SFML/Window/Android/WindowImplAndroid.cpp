@@ -506,6 +506,7 @@ int WindowImplAndroid::processPointerEvent(bool isDown, AInputEvent* _event, Act
             event.mouseButton.button = static_cast<Mouse::Button>(id);
             event.mouseButton.x = x;
             event.mouseButton.y = y;
+            event.mouseButton.modifiersAvailable = false;
 
             if (id >= 0 && id < Mouse::ButtonCount)
                 states->isButtonPressed[id] = true;
@@ -528,6 +529,7 @@ int WindowImplAndroid::processPointerEvent(bool isDown, AInputEvent* _event, Act
             event.mouseButton.button = static_cast<Mouse::Button>(id);
             event.mouseButton.x = x;
             event.mouseButton.y = y;
+            event.mouseButton.modifiersAvailable = false;
 
             if (id >= 0 && id < Mouse::ButtonCount)
                 states->isButtonPressed[id] = false;

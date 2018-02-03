@@ -265,6 +265,7 @@ void WindowImplCocoa::mouseDownAt(Mouse::Button button, int x, int y)
     event.mouseButton.button = button;
     event.mouseButton.x = x;
     event.mouseButton.y = y;
+    event.mouseButton.modifiersAvailable = false;
     scaleOutXY(event.mouseButton, m_delegate);
 
     pushEvent(event);
@@ -279,6 +280,7 @@ void WindowImplCocoa::mouseUpAt(Mouse::Button button, int x, int y)
     event.mouseButton.button = button;
     event.mouseButton.x = x;
     event.mouseButton.y = y;
+    event.mouseButton.modifiersAvailable = false;
     scaleOutXY(event.mouseButton, m_delegate);
 
     pushEvent(event);
