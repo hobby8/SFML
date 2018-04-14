@@ -856,7 +856,7 @@ nextRow(3)
 
     // Create the texture
     texture.loadFromImage(image);
-    texture.setSmooth(true);
+    texture.setSmooth(false);   // SFML original code: texture.setSmooth(true)
 }
 
 } // namespace sf
