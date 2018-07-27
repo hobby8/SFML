@@ -90,11 +90,7 @@ namespace
                 // We only check for E_INVALIDARG because we would get
                 // E_ACCESSDENIED if the DPI was already set previously
                 // and S_OK means the call was successful
-
-// NOTE: THE FOLLOWING HAS BEEN MODIFIED SO THAT ON WINDOWS 8.1+, PROCESS DECLARES ITSELF
-// DPI-UNAWARE, AND ON EARLIER WINDOWS VERSIONS, DPI-AWARE
-                //if (SetProcessDpiAwarenessFunc(ProcessSystemDpiAware) == E_INVALIDARG)
-                if (SetProcessDpiAwarenessFunc(ProcessDpiUnaware) == E_INVALIDARG)
+                if (SetProcessDpiAwarenessFunc(ProcessSystemDpiAware) == E_INVALIDARG)
                 {
                     sf::err() << "Failed to set process DPI awareness" << std::endl;
                 }
