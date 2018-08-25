@@ -36,6 +36,7 @@
 #include <iostream>
 
 #ifdef __EMSCRIPTEN__
+void setBlendModeUsingGles2(sf::RenderTarget &renderTarget, const sf::BlendMode &blendMode);
 void renderUsingGles2(sf::RenderTarget &renderTarget, unsigned int mode, const sf::Vertex *vertices,
 	int verticesCount, const sf::Texture *texture);
 #endif
@@ -501,6 +502,7 @@ void RenderTarget::applyCurrentView()
 void RenderTarget::applyBlendMode(const BlendMode& mode)
 {
     bool enableBlendMode = (mode != BlendNone);
+#ifndef __EMSCRIPTEN__
     if (enableBlendMode != m_cache.blendModeEnabled)
     {
         if (enableBlendMode)
@@ -550,6 +552,10 @@ void RenderTarget::applyBlendMode(const BlendMode& mode)
             warned = true;
         }
     }
+#else
+    setBlendModeUsingGles2(*this, mode);
+    m_cache.blendModeEnabled = enableBlendMode;
+#endif
 
     m_cache.lastBlendMode = mode;
 }
