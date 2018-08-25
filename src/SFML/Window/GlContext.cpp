@@ -232,9 +232,13 @@ void GlContext::initResource()
 
         // Check whether a >= 3.0 context is available
         int majorVersion = 0;
+#ifndef __EMSCRIPTEN__
         glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
 
         if (glGetError() == GL_INVALID_ENUM)
+#else
+		if (false)
+#endif
         {
             // Try to load the < 3.0 way
             const char* extensionString = reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
@@ -571,10 +575,14 @@ void GlContext::initialize(const ContextSettings& requestedSettings)
     int minorVersion = 0;
 
     // Try the new way first
+#ifndef __EMSCRIPTEN__
     glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
     glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
 
     if (glGetError() != GL_INVALID_ENUM)
+#else
+    if (false)
+#endif
     {
         m_settings.majorVersion = static_cast<unsigned int>(majorVersion);
         m_settings.minorVersion = static_cast<unsigned int>(minorVersion);

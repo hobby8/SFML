@@ -58,10 +58,12 @@ void ensureExtensionsInit()
         int minorVersion = 0;
 
         // Try the new way first
+#ifndef __EMSCRIPTEN__
         glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
         glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
 
         if (glGetError() == GL_INVALID_ENUM)
+#endif
         {
             // Try the old way
             const GLubyte* version = glGetString(GL_VERSION);
