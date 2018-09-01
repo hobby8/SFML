@@ -194,7 +194,7 @@ Vector2f MyText::findCharacterPos(std::size_t index) const
         // Apply the kerning offset
         position.x += static_cast<float>(m_font->getKerning(prevChar, curChar, m_characterSize));
 		if (m_characterSize >= 3)
-			position.x = std::ceilf(position.x);
+			position.x = std::ceil(position.x);
         prevChar = curChar;
 
         // Handle special characters
@@ -210,7 +210,7 @@ Vector2f MyText::findCharacterPos(std::size_t index) const
     }
 
 	if (m_characterSize >= 3)
-		position.x = std::ceilf(position.x);
+		position.x = std::ceil(position.x);
 
     // Transform the position to global coordinates
     position = getTransform().transformPoint(position);
@@ -312,7 +312,7 @@ void MyText::ensureGeometryUpdate() const
         // Apply the kerning offset
         x += static_cast<float>(m_font->getKerning(prevChar, curChar, m_characterSize));
 		if (m_characterSize >= 3)
-			x = std::ceilf(x);
+			x = std::ceil(x);
         prevChar = curChar;
 
         // If we're using the underlined style and there's a new line, draw a line
@@ -376,8 +376,8 @@ void MyText::ensureGeometryUpdate() const
         float bottom = glyph.bounds.top  + glyph.bounds.height;
 		if (m_characterSize >= 3)
 		{
-			left = std::floorf(left + 0.5f);
-			top = std::floorf(top + 0.5f);
+			left = std::floor(left + 0.5f);
+			top = std::floor(top + 0.5f);
 		}
 
         float u1 = static_cast<float>(glyph.textureRect.left);
