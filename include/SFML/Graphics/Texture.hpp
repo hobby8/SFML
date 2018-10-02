@@ -586,6 +586,10 @@ public:
     ////////////////////////////////////////////////////////////
     static unsigned int getMaximumSize();
 
+#ifdef __EMSCRIPTEN__
+	bool isPixelsFlipped() const { return m_pixelsFlipped; }
+#endif
+
 private:
 
     friend class RenderTexture;

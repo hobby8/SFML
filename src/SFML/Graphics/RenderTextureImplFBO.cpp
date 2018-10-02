@@ -31,6 +31,57 @@
 #include <SFML/System/Err.hpp>
 
 
+#ifdef __EMSCRIPTEN__
+#undef GLEXT_glDeleteRenderbuffers
+#undef GLEXT_glDeleteFramebuffers
+#undef GLEXT_glGenFramebuffers
+#undef GLEXT_glBindFramebuffer
+#undef GLEXT_GL_FRAMEBUFFER
+#undef GLEXT_glGenRenderbuffers
+#undef GLEXT_glBindRenderbuffer
+#undef GLEXT_GL_RENDERBUFFER
+#undef GLEXT_glRenderbufferStorage
+#undef GLEXT_GL_DEPTH_COMPONENT
+#undef GLEXT_glFramebufferRenderbuffer
+#undef GLEXT_GL_DEPTH_ATTACHMENT
+#undef GLEXT_glFramebufferTexture2D
+#undef GLEXT_GL_COLOR_ATTACHMENT0
+#undef GLEXT_glCheckFramebufferStatus
+#undef GLEXT_GL_FRAMEBUFFER_COMPLETE
+
+#define GLEXT_glDeleteRenderbuffers glDeleteRenderbuffers
+#define GLEXT_glDeleteFramebuffers glDeleteFramebuffers
+#define GLEXT_glGenFramebuffers glGenFramebuffers
+#define GLEXT_glBindFramebuffer glBindFramebuffer
+#define GLEXT_GL_FRAMEBUFFER 0x8D40
+#define GLEXT_glGenRenderbuffers glGenRenderbuffers
+#define GLEXT_glBindRenderbuffer glBindRenderbuffer
+#define GLEXT_GL_RENDERBUFFER 0x8D41
+#define GLEXT_glRenderbufferStorage glRenderbufferStorage
+#define GLEXT_GL_DEPTH_COMPONENT 0x1902
+#define GLEXT_glFramebufferRenderbuffer glFramebufferRenderbuffer
+#define GLEXT_GL_DEPTH_ATTACHMENT 0x8D00
+#define GLEXT_glFramebufferTexture2D glFramebufferTexture2D
+#define GLEXT_GL_COLOR_ATTACHMENT0 0x8CE0
+#define GLEXT_glCheckFramebufferStatus glCheckFramebufferStatus
+#define GLEXT_GL_FRAMEBUFFER_COMPLETE 0x8CD5
+
+#define GL_APICALL extern "C"
+#define GL_APIENTRY
+// copied from SDL_opengles2_gl2.h
+GL_APICALL void         GL_APIENTRY glDeleteRenderbuffers (GLsizei n, const GLuint* renderbuffers);
+GL_APICALL void         GL_APIENTRY glDeleteFramebuffers (GLsizei n, const GLuint* framebuffers);
+GL_APICALL void         GL_APIENTRY glGenFramebuffers (GLsizei n, GLuint* framebuffers);
+GL_APICALL void         GL_APIENTRY glBindFramebuffer (GLenum target, GLuint framebuffer);
+GL_APICALL void         GL_APIENTRY glGenRenderbuffers (GLsizei n, GLuint* renderbuffers);
+GL_APICALL void         GL_APIENTRY glBindRenderbuffer (GLenum target, GLuint renderbuffer);
+GL_APICALL void         GL_APIENTRY glRenderbufferStorage (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
+GL_APICALL void         GL_APIENTRY glFramebufferRenderbuffer (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+GL_APICALL void         GL_APIENTRY glFramebufferTexture2D (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+GL_APICALL GLenum       GL_APIENTRY glCheckFramebufferStatus (GLenum target);
+#endif	// __EMSCRIPTEN__
+
+
 namespace sf
 {
 namespace priv
@@ -77,7 +128,11 @@ bool RenderTextureImplFBO::isAvailable()
     // Make sure that extensions are initialized
     priv::ensureExtensionsInit();
 
+#ifdef __EMSCRIPTEN__
+	return true;
+#else
     return GLEXT_framebuffer_object != 0;
+#endif
 }
 
 
@@ -134,7 +189,13 @@ bool RenderTextureImplFBO::create(unsigned int width, unsigned int height, unsig
 ////////////////////////////////////////////////////////////
 bool RenderTextureImplFBO::activate(bool active)
 {
-    return m_context->setActive(active);
+#ifndef __EMSCRIPTEN__
+	return m_context->setActive(active);
+#else
+	// no support for m_depthBuffer yet
+	glCheck(GLEXT_glBindFramebuffer(GLEXT_GL_FRAMEBUFFER, (active ? m_frameBuffer : 0)));
+	return true;
+#endif
 }
 
 

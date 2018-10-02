@@ -368,7 +368,13 @@ private:
     /// \brief Apply the current view
     ///
     ////////////////////////////////////////////////////////////
+#ifdef __EMSCRIPTEN__
+public:
+#endif
     void applyCurrentView();
+#ifdef __EMSCRIPTEN__
+private:
+#endif
 
     ////////////////////////////////////////////////////////////
     /// \brief Apply a new blending mode
