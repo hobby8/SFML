@@ -233,6 +233,9 @@ public:
     ////////////////////////////////////////////////////////////
     const Texture& getTexture() const;
 
+	/// Calls sf::priv::RenderTextureImplFBO::isAvailable()
+    static bool isFBOAvailable();
+
 private:
 
     ////////////////////////////////////////////////////////////

@@ -183,4 +183,8 @@ const Texture& RenderTexture::getTexture() const
     return m_texture;
 }
 
+bool RenderTexture::isFBOAvailable() {
+	return priv::RenderTextureImplFBO::isAvailable();
+}
+
 } // namespace sf
