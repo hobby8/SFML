@@ -260,20 +260,26 @@ void GlContext::initResource()
         sharedContext->initialize(ContextSettings());
 
         // Load our extensions vector
+		sf::err() << "YYY in GlContext::initResource(): Going to fill extensions vector from scratch" << std::endl;
         extensions.clear();
 
         // Check whether a >= 3.0 context is available
         int majorVersion = 0;
 #ifndef __EMSCRIPTEN__
+		glGetStringiFuncType glGetStringiFunc = NULL;	// YYY
+		glGetStringiFunc = reinterpret_cast<glGetStringiFuncType>(getFunction("glGetStringi"));	// YYY
+		
         glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
 
-        if (glGetError() == GL_INVALID_ENUM)
+        //if (glGetError() == GL_INVALID_ENUM)
+        if (glGetError() == GL_INVALID_ENUM || !glGetStringiFunc)	// YYY
 #else
 		if (false)
 #endif
         {
             // Try to load the < 3.0 way
             const char* extensionString = reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
+			sf::err() << "YYY in GlContext::initResource(), extensionString (the < 3.0 way) = " << extensionString << std::endl;
 
             do
             {
@@ -289,24 +295,27 @@ void GlContext::initResource()
         else
         {
             // Try to load the >= 3.0 way
-            glGetStringiFuncType glGetStringiFunc = NULL;
-            glGetStringiFunc = reinterpret_cast<glGetStringiFuncType>(getFunction("glGetStringi"));
+            //glGetStringiFuncType glGetStringiFunc = NULL;
+            //glGetStringiFunc = reinterpret_cast<glGetStringiFuncType>(getFunction("glGetStringi"));
 
             if (glGetStringiFunc)
             {
                 int numExtensions = 0;
                 glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+				sf::err() << "YYY in GlContext::initResource(), numExtensions (the >= 3.0 way) = " << numExtensions << std::endl;
 
                 if (numExtensions)
                 {
                     for (unsigned int i = 0; i < static_cast<unsigned int>(numExtensions); ++i)
                     {
                         const char* extensionString = reinterpret_cast<const char*>(glGetStringiFunc(GL_EXTENSIONS, i));
+						sf::err() << "YYY in GlContext::initResource(), extensionString[" << i << "] (the >= 3.0 way) = " << extensionString << std::endl;
 
                         extensions.push_back(extensionString);
                     }
                 }
-            }
+            } else
+				sf::err() << "YYY in GlContext::initResource(), getFunction(\"glGetStringi\") returned NULL" << std::endl;
         }
 
         // Deactivate the shared context so that others can activate it when necessary

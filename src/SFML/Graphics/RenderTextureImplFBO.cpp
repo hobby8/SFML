@@ -58,6 +58,7 @@ namespace
     // might trigger deletion of its contained stale FBOs
     void destroyStaleFBOs()
     {
+#ifndef __EMSCRIPTEN__
         sf::Uint64 contextId = sf::Context::getActiveContextId();
 
         for (std::set<std::pair<sf::Uint64, unsigned int> >::iterator iter = staleFrameBuffers.begin(); iter != staleFrameBuffers.end();)
@@ -74,6 +75,7 @@ namespace
                 ++iter;
             }
         }
+#endif
     }
 
     // Callback that is called every time a context is destroyed
@@ -411,7 +413,7 @@ bool RenderTextureImplFBO::create(unsigned int width, unsigned int height, unsig
     if (!Context::getActiveContextId())
         return true;
 
-#ifndef SFML_OPENGL_ES
+#if !defined(SFML_OPENGL_ES) && !defined(__EMSCRIPTEN__)
 
     // Save the current bindings so we can restore them after we are done
     GLint readFramebuffer = 0;
@@ -559,8 +561,13 @@ bool RenderTextureImplFBO::createFrameBuffer()
 bool RenderTextureImplFBO::activate(bool active)
 {
 #ifdef __EMSCRIPTEN__
-	// no support for m_depthBuffer yet
-	glCheck(GLEXT_glBindFramebuffer(GLEXT_GL_FRAMEBUFFER, (active ? m_frameBuffer : 0)));
+	// no support for m_depthBuffer nor multisample buffers yet
+	if (active) {
+		if (m_frameBuffers.empty() || m_frameBuffers.size() != 1)
+			err() << "SFML Emscripten: in RenderTextureImplFBO::activate(true), m_frameBuffers has size " << m_frameBuffers.size() << std::endl;
+		glCheck(GLEXT_glBindFramebuffer(GLEXT_GL_FRAMEBUFFER, (!m_frameBuffers.empty() ? m_frameBuffers.begin()->second : 0)));
+	} else
+		glCheck(GLEXT_glBindFramebuffer(GLEXT_GL_FRAMEBUFFER, 0));
 	return true;
 #else
     // Unbind the FBO if requested

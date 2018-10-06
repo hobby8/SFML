@@ -272,10 +272,11 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
     if (isActive(m_id) || setActive(true))
 #endif
     {
+#ifndef __EMSCRIPTEN__
         // Check if the vertex count is low enough so that we can pre-transform them
         bool useVertexCache = (vertexCount <= StatesCache::VertexCacheSize);
-#ifdef __EMSCRIPTEN__
-		useVertexCache = false;
+#else
+		const bool useVertexCache = false;
 #endif
 
         if (useVertexCache)
@@ -325,9 +326,19 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 
             glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 12));
         }
-#endif
 
         drawPrimitives(type, 0, vertexCount);
+#else
+		// not implemented
+		if (!vertices)	// should not occur as we disabled useVertexCache
+			vertices = m_cache.vertexCache;
+		// Find the OpenGL primitive type
+		static const GLenum modes[] = {GL_POINTS, GL_LINES, GL_LINE_STRIP, GL_TRIANGLES,
+									   GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_QUADS};
+		GLenum mode = modes[type];
+		renderUsingGles2(*this, mode, vertices, vertexCount, states.texture);
+#endif
+
         cleanupDraw(states);
 
         // Update the cache
@@ -395,11 +406,6 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
 
         // Unbind vertex buffer
         VertexBuffer::bind(NULL);
-#else
-		if (!vertices)	// should not occur as we disabled useVertexCache
-			vertices = m_cache.vertexCache;
-		
-		renderUsingGles2(*this, mode, vertices, vertexCount, states.texture);
 #endif
 
         cleanupDraw(states);

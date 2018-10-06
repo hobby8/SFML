@@ -31,6 +31,8 @@
 #include <cstring>
 #include <cstddef>
 #include <string>
+#include <SFML/System/Err.hpp>	// YYY
+
 
 static sf::GlFunctionPointer IntGetProcAddress(const char* name)
 {
@@ -196,6 +198,7 @@ static void LoadExtByName(const char* extensionName)
 
 static void ProcExtsFromExtString(const char* strExtList)
 {
+	sf::err() << "YYY ProcExtsFromExtString() called with string " << strExtList << std::endl;
     do
     {
         const char* begin = strExtList;
