@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2017 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -155,7 +155,11 @@ Uint64 SoundFileReaderWav::read(Int16* samples, Uint64 maxCount)
     assert(m_stream);
 
     Uint64 count = 0;
-    while ((count < maxCount) && (m_stream->tell() < m_dataEnd))
+    Uint64 startPos = m_stream->tell();
+
+    // Tracking of m_dataEnd is important to prevent sf::Music from reading
+    // data until EOF, as WAV files may have metadata at the end.
+    while ((count < maxCount) && (startPos + count * m_bytesPerSample < m_dataEnd))
     {
         switch (m_bytesPerSample)
         {

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2017 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -133,6 +133,11 @@ bool Texture::create(unsigned int width, unsigned int height)
         return false;
     }
 
+    TransientContextLock lock;
+
+    // Make sure that extensions are initialized
+    priv::ensureExtensionsInit();
+
     // Compute the internal texture dimensions depending on NPOT textures support
     Vector2u actualSize(getValidSize(width), getValidSize(height));
 
@@ -154,8 +159,6 @@ bool Texture::create(unsigned int width, unsigned int height)
     m_pixelsFlipped = false;
     m_fboAttachment = false;
 
-    TransientContextLock lock;
-
     // Create the OpenGL texture if it doesn't exist yet
     if (!m_texture)
     {
@@ -163,9 +166,6 @@ bool Texture::create(unsigned int width, unsigned int height)
         glCheck(glGenTextures(1, &texture));
         m_texture = static_cast<unsigned int>(texture);
     }
-
-    // Make sure that extensions are initialized
-    priv::ensureExtensionsInit();
 
     // Make sure that the current texture binding will be preserved
     priv::TextureSaver save;
@@ -875,11 +875,6 @@ unsigned int Texture::getNativeHandle() const
 ////////////////////////////////////////////////////////////
 unsigned int Texture::getValidSize(unsigned int size)
 {
-    TransientContextLock lock;
-
-    // Make sure that extensions are initialized
-    priv::ensureExtensionsInit();
-
     if (GLEXT_texture_non_power_of_two)
     {
         // If hardware supports NPOT textures, then just return the unmodified size

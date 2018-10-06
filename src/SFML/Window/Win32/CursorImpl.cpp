@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -69,7 +69,7 @@ bool CursorImpl::loadFromPixels(const Uint8* pixels, Vector2u size, Vector2u hot
     bitmapHeader.bV5BlueMask    = 0x000000ff;
     bitmapHeader.bV5AlphaMask   = 0xff000000;
 
-    Uint8* bitmapData = NULL;
+    Uint32* bitmapData = NULL;
 
     HDC screenDC = GetDC(NULL);
     HBITMAP color = CreateDIBSection(
@@ -89,7 +89,12 @@ bool CursorImpl::loadFromPixels(const Uint8* pixels, Vector2u size, Vector2u hot
     }
 
     // Fill our bitmap with the cursor color data
-    std::memcpy(bitmapData, pixels, size.x * size.y * 4);
+    // We'll have to swap the red and blue channels here
+    Uint32* bitmapOffset = bitmapData;
+    for (std::size_t remaining = size.x * size.y; remaining > 0; --remaining, pixels += 4)
+    {
+        *bitmapOffset++ = (pixels[3] << 24) | (pixels[0] << 16) | (pixels[1] << 8) | pixels[2];
+    }
 
     // Create a dummy mask bitmap (it won't be used)
     HBITMAP mask = CreateBitmap(size.x, size.y, 1, 1, NULL);
