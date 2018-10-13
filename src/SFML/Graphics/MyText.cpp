@@ -319,7 +319,7 @@ void MyText::ensureGeometryUpdate() const
         if (underlined && (curChar == L'\n'))
         {
             float top = std::floor(y + underlineOffset - (underlineThickness / 2) + 0.5f);
-            float bottom = top + std::floor(underlineThickness + 0.5f);
+            float bottom = top + std::max(float(underlineThickness >= 0.25f), std::floor(underlineThickness + 0.5f));
 
             VertexArray& vertices = m_verticesMap[NULL];
             vertices.append(Vertex(Vector2f(0, top),    m_color, Vector2f(1, 1)));
@@ -334,7 +334,7 @@ void MyText::ensureGeometryUpdate() const
         if (strikeThrough && (curChar == L'\n'))
         {
             float top = std::floor(y + strikeThroughOffset - (underlineThickness / 2) + 0.5f);
-            float bottom = top + std::floor(underlineThickness + 0.5f);
+            float bottom = top + std::max(float(underlineThickness >= 0.25f), std::floor(underlineThickness + 0.5f));
 
             VertexArray& vertices = m_verticesMap[NULL];
             vertices.append(Vertex(Vector2f(0, top),    m_color, Vector2f(1, 1)));
@@ -408,7 +408,7 @@ void MyText::ensureGeometryUpdate() const
     if (underlined)
     {
         float top = std::floor(y + underlineOffset - (underlineThickness / 2) + 0.5f);
-        float bottom = top + std::floor(underlineThickness + 0.5f);
+        float bottom = top + std::max(float(underlineThickness >= 0.25f), std::floor(underlineThickness + 0.5f));
 
         VertexArray& vertices = m_verticesMap[NULL];
         vertices.append(Vertex(Vector2f(0, top),    m_color, Vector2f(1, 1)));
@@ -423,7 +423,7 @@ void MyText::ensureGeometryUpdate() const
     if (strikeThrough)
     {
         float top = std::floor(y + strikeThroughOffset - (underlineThickness / 2) + 0.5f);
-        float bottom = top + std::floor(underlineThickness + 0.5f);
+        float bottom = top + std::max(float(underlineThickness >= 0.25f), std::floor(underlineThickness + 0.5f));
 
         VertexArray& vertices = m_verticesMap[NULL];
         vertices.append(Vertex(Vector2f(0, top),    m_color, Vector2f(1, 1)));
