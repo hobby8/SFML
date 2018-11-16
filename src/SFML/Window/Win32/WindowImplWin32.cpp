@@ -209,10 +209,39 @@ m_cursorGrabbed   (m_fullscreen)
     // In windowed mode, adjust width and height so that window will have the requested client area
     if (!m_fullscreen)
     {
-        RECT rectangle = {0, 0, width, height};
-        AdjustWindowRect(&rectangle, win32Style, false);
-        width  = rectangle.right - rectangle.left;
-        height = rectangle.bottom - rectangle.top;
+		bool dpiAwareAdjustWindowRect = false;
+        HINSTANCE shCoreDll = LoadLibrary(L"Shcore.dll");
+        if (shCoreDll) {
+			enum MONITOR_DPI_TYPE {
+				MDT_EFFECTIVE_DPI = 0,
+				MDT_ANGULAR_DPI = 1,
+				MDT_RAW_DPI = 2,
+				MDT_DEFAULT = MDT_EFFECTIVE_DPI
+			};
+			typedef HRESULT (WINAPI* GetDpiForMonitorFuncType)(HMONITOR hmonitor,MONITOR_DPI_TYPE dpiType,UINT *dpiX, UINT *dpiY);
+            GetDpiForMonitorFuncType GetDpiForMonitorFunc = reinterpret_cast<GetDpiForMonitorFuncType>(GetProcAddress(shCoreDll, "GetDpiForMonitor"));
+			typedef BOOL (WINAPI* AdjustWindowRectExForDpiFuncType)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+            AdjustWindowRectExForDpiFuncType AdjustWindowRectExForDpiFunc =
+				reinterpret_cast<AdjustWindowRectExForDpiFuncType>(GetProcAddress(shCoreDll, "AdjustWindowRectExForDpi"));
+            if (GetDpiForMonitorFunc && AdjustWindowRectExForDpiFunc) {
+				RECT rectangle2 = {left, top, left + width, top + height};
+				UINT dpiX, dpiY;
+				if (!GetDpiForMonitorFunc(::MonitorFromRect(&rectangle2, MONITOR_DEFAULTTONEAREST), MDT_DEFAULT, &dpiX, &dpiY)) {
+					if (AdjustWindowRectExForDpiFunc(&rectangle2, win32Style, false, 0, dpiX)) {
+						width  = rectangle2.right - rectangle2.left;
+						height = rectangle2.bottom - rectangle2.top;
+						dpiAwareAdjustWindowRect = true;
+					}
+				}
+			}
+			FreeLibrary(shCoreDll);
+		}
+		if (!dpiAwareAdjustWindowRect) {
+			RECT rectangle = {0, 0, width, height};
+			AdjustWindowRectEx(&rectangle, win32Style, false, 0);
+			width  = rectangle.right - rectangle.left;
+			height = rectangle.bottom - rectangle.top;
+		}
     }
 
     // Create the window
@@ -342,7 +371,24 @@ void WindowImplWin32::setSize(const Vector2u& size)
     // SetWindowPos wants the total size of the window (including title bar and borders),
     // so we have to compute it
     RECT rectangle = {0, 0, static_cast<long>(size.x), static_cast<long>(size.y)};
-    AdjustWindowRect(&rectangle, GetWindowLong(m_handle, GWL_STYLE), false);
+
+	bool dpiAwareAdjustWindowRect = false;
+    HINSTANCE shCoreDll = LoadLibrary(L"Shcore.dll");
+    if (shCoreDll) {
+		typedef UINT (WINAPI* GetDpiForWindowFuncType)(HWND hwnd);
+		GetDpiForWindowFuncType GetDpiForWindowFunc = reinterpret_cast<GetDpiForWindowFuncType>(GetProcAddress(shCoreDll, "GetDpiForWindow"));
+		typedef BOOL (WINAPI* AdjustWindowRectExForDpiFuncType)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+        AdjustWindowRectExForDpiFuncType AdjustWindowRectExForDpiFunc =
+			reinterpret_cast<AdjustWindowRectExForDpiFuncType>(GetProcAddress(shCoreDll, "AdjustWindowRectExForDpi"));
+        if (GetDpiForWindowFunc && AdjustWindowRectExForDpiFunc) {
+			if (AdjustWindowRectExForDpiFunc(&rectangle, GetWindowLong(m_handle, GWL_STYLE), false,
+				GetWindowLong(m_handle, GWL_EXSTYLE), GetDpiForWindowFunc(m_handle)))
+				dpiAwareAdjustWindowRect = true;
+		}
+		FreeLibrary(shCoreDll);
+	}
+	if (!dpiAwareAdjustWindowRect)
+		AdjustWindowRectEx(&rectangle, GetWindowLong(m_handle, GWL_STYLE), false, GetWindowLong(m_handle, GWL_EXSTYLE));
     int width  = rectangle.right - rectangle.left;
     int height = rectangle.bottom - rectangle.top;
 
