@@ -26,10 +26,14 @@
 // Headers
 ////////////////////////////////////////////////////////////
 #include <SFML/Audio/SoundFileFactory.hpp>
+#ifdef SFML_INCLUDE_FLAC
 #include <SFML/Audio/SoundFileReaderFlac.hpp>
 #include <SFML/Audio/SoundFileWriterFlac.hpp>
+#endif	// SFML_INCLUDE_FLAC
+#ifdef SFML_INCLUDE_OGG
 #include <SFML/Audio/SoundFileReaderOgg.hpp>
 #include <SFML/Audio/SoundFileWriterOgg.hpp>
+#endif	// SFML_INCLUDE_OGG
 #include <SFML/Audio/SoundFileReaderWav.hpp>
 #include <SFML/Audio/SoundFileWriterWav.hpp>
 #include <SFML/System/FileInputStream.hpp>
@@ -45,10 +49,14 @@ namespace
         static bool registered = false;
         if (!registered)
         {
+#ifdef SFML_INCLUDE_FLAC
             sf::SoundFileFactory::registerReader<sf::priv::SoundFileReaderFlac>();
             sf::SoundFileFactory::registerWriter<sf::priv::SoundFileWriterFlac>();
+#endif	// SFML_INCLUDE_FLAC
+#ifdef SFML_INCLUDE_OGG
             sf::SoundFileFactory::registerReader<sf::priv::SoundFileReaderOgg>();
             sf::SoundFileFactory::registerWriter<sf::priv::SoundFileWriterOgg>();
+#endif	// SFML_INCLUDE_OGG
             sf::SoundFileFactory::registerReader<sf::priv::SoundFileReaderWav>();
             sf::SoundFileFactory::registerWriter<sf::priv::SoundFileWriterWav>();
             registered = true;

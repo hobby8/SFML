@@ -1,3 +1,4 @@
+#ifdef SFML_INCLUDE_OGG
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
@@ -177,3 +178,4 @@ void SoundFileReaderOgg::close()
 } // namespace priv
 
 } // namespace sf
+#endif	// SFML_INCLUDE_OGG

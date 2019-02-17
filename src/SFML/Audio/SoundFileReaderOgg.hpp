@@ -1,3 +1,4 @@
+#ifdef SFML_INCLUDE_OGG
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
@@ -126,3 +127,4 @@ private:
 
 
 #endif // SFML_SOUNDFILEREADEROGG_HPP
+#endif	// SFML_INCLUDE_OGG

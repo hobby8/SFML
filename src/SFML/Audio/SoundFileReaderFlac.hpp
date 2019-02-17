@@ -1,3 +1,4 @@
+#ifdef SFML_INCLUDE_FLAC
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
@@ -142,3 +143,4 @@ private:
 
 
 #endif // SFML_SOUNDFILEREADERFLAC_HPP
+#endif	// SFML_INCLUDE_FLAC
