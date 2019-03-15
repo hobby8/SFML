@@ -28,10 +28,12 @@
 #include <SFML/Graphics/ImageLoader.hpp>
 #include <SFML/System/InputStream.hpp>
 #include <SFML/System/Err.hpp>
+#ifdef SFML_INCLUDE_STB_IMAGE
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#endif	// SFML_INCLUDE_STB_IMAGE
 #include <cctype>
 
 
@@ -97,6 +99,7 @@ bool ImageLoader::loadImageFromFile(const std::string& filename, std::vector<Uin
     // Clear the array (just in case)
     pixels.clear();
 
+#ifdef SFML_INCLUDE_STB_IMAGE
     // Load the image and get a pointer to the pixels in memory
     int width = 0;
     int height = 0;
@@ -128,6 +131,9 @@ bool ImageLoader::loadImageFromFile(const std::string& filename, std::vector<Uin
 
         return false;
     }
+#else
+    return false;
+#endif	// SFML_INCLUDE_STB_IMAGE
 }
 
 
@@ -140,6 +146,7 @@ bool ImageLoader::loadImageFromMemory(const void* data, std::size_t dataSize, st
         // Clear the array (just in case)
         pixels.clear();
 
+#ifdef SFML_INCLUDE_STB_IMAGE
         // Load the image and get a pointer to the pixels in memory
         int width = 0;
         int height = 0;
@@ -172,6 +179,9 @@ bool ImageLoader::loadImageFromMemory(const void* data, std::size_t dataSize, st
 
             return false;
         }
+#else
+        return false;
+#endif	// SFML_INCLUDE_STB_IMAGE
     }
     else
     {
@@ -190,6 +200,7 @@ bool ImageLoader::loadImageFromStream(InputStream& stream, std::vector<Uint8>& p
     // Make sure that the stream's reading position is at the beginning
     stream.seek(0);
 
+#ifdef SFML_INCLUDE_STB_IMAGE
     // Setup the stb_image callbacks
     stbi_io_callbacks callbacks;
     callbacks.read = &read;
@@ -227,12 +238,16 @@ bool ImageLoader::loadImageFromStream(InputStream& stream, std::vector<Uint8>& p
 
         return false;
     }
+#else
+    return false;
+#endif	// SFML_INCLUDE_STB_IMAGE
 }
 
 
 ////////////////////////////////////////////////////////////
 bool ImageLoader::saveImageToFile(const std::string& filename, const std::vector<Uint8>& pixels, const Vector2u& size)
 {
+#ifdef SFML_INCLUDE_STB_IMAGE
     // Make sure the image is not empty
     if (!pixels.empty() && (size.x > 0) && (size.y > 0))
     {
@@ -267,6 +282,7 @@ bool ImageLoader::saveImageToFile(const std::string& filename, const std::vector
                 return true;
         }
     }
+#endif	// SFML_INCLUDE_STB_IMAGE
 
     err() << "Failed to save image \"" << filename << "\"" << std::endl;
     return false;
