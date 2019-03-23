@@ -1,4 +1,4 @@
-#ifdef SFML_INCLUDE_FLAC
+//#ifdef SFML_INCLUDE_FLAC
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
@@ -339,4 +339,4 @@ void SoundFileReaderFlac::close()
 } // namespace priv
 
 } // namespace sf
-#endif	// SFML_INCLUDE_FLAC
+//#endif	// SFML_INCLUDE_FLAC

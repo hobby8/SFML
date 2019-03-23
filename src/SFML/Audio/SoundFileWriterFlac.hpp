@@ -1,4 +1,4 @@
-#ifdef SFML_INCLUDE_FLAC
+#ifdef SFML_INCLUDE_FLAC_WRITER
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
@@ -113,4 +113,4 @@ private:
 
 
 #endif // SFML_SOUNDFILEWRITERFLAC_HPP
-#endif	// SFML_INCLUDE_FLAC
+#endif	// SFML_INCLUDE_FLAC_WRITER

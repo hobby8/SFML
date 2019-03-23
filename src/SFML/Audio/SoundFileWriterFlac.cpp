@@ -1,4 +1,4 @@
-#ifdef SFML_INCLUDE_FLAC
+#ifdef SFML_INCLUDE_FLAC_WRITER
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
@@ -132,4 +132,4 @@ void SoundFileWriterFlac::close()
 } // namespace priv
 
 } // namespace sf
-#endif	// SFML_INCLUDE_FLAC
+#endif	// SFML_INCLUDE_FLAC_WRITER
