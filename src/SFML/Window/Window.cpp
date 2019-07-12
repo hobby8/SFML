@@ -392,6 +392,14 @@ void Window::display()
 
 
 ////////////////////////////////////////////////////////////
+void Window::setUnresponsiveEraseColor(Uint8 red, Uint8 green, Uint8 blue)
+{
+    if (m_impl)
+        m_impl->setUnresponsiveEraseColor(red, green, blue);
+}
+
+
+////////////////////////////////////////////////////////////
 WindowHandle Window::getSystemHandle() const
 {
     return m_impl ? m_impl->getSystemHandle() : 0;
