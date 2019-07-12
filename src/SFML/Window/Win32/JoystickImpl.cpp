@@ -39,6 +39,7 @@
 #include <vector>
 
 
+#ifdef SFML_INCLUDE_JOYSTICK
 
 ////////////////////////////////////////////////////////////
 // DirectInput
@@ -918,3 +919,28 @@ BOOL CALLBACK JoystickImpl::deviceObjectEnumerationCallback(const DIDEVICEOBJECT
 } // namespace priv
 
 } // namespace sf
+
+#else	// !defined(SFML_INCLUDE_JOYSTICK)
+
+namespace sf { namespace priv {
+void JoystickImpl::initialize() {}
+void JoystickImpl::cleanup() {}
+bool JoystickImpl::isConnected(unsigned int index) { return false; }
+void JoystickImpl::setLazyUpdates(bool status) {}
+void JoystickImpl::updateConnections() {}
+bool JoystickImpl::open(unsigned int index) { return false; }
+void JoystickImpl::close() {}
+JoystickCaps JoystickImpl::getCapabilities() const { return JoystickCaps(); }
+Joystick::Identification JoystickImpl::getIdentification() const { return Joystick::Identification(); }
+JoystickState JoystickImpl::update() { return JoystickState(); }
+void JoystickImpl::initializeDInput() {}
+void JoystickImpl::cleanupDInput() {}
+bool JoystickImpl::isConnectedDInput(unsigned int index) { return false; }
+void JoystickImpl::updateConnectionsDInput() {}
+bool JoystickImpl::openDInput(unsigned int index) { return false; }
+void JoystickImpl::closeDInput() {}
+JoystickCaps JoystickImpl::getCapabilitiesDInput() const { return JoystickCaps(); }
+JoystickState JoystickImpl::updateDInput() { return JoystickState(); }
+} }
+
+#endif	// SFML_INCLUDE_JOYSTICK
