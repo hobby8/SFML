@@ -726,6 +726,16 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
 
+        // DPI changed event
+        case 0x02E0 /* WM_DPICHANGED */:
+        {
+            const RECT* rect = (RECT*) lParam;
+            SetWindowPos(m_handle, NULL, rect->left, rect->top,
+                rect->right - rect->left, rect->bottom - rect->top,
+                SWP_NOZORDER | SWP_NOACTIVATE);
+            break;
+        }
+
         // Gain focus event
         case WM_SETFOCUS:
         {
@@ -750,6 +760,7 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
 
+        // Paint event
         case WM_PAINT:
         {
             if (m_eraseEnabled && (m_resizing || GetActiveWindow() != NULL && GetActiveWindow() != m_handle))
