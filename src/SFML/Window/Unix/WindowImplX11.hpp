@@ -328,7 +328,8 @@ private:
     Pixmap             m_iconPixmap;     ///< The current icon pixmap if in use
     Pixmap             m_iconMaskPixmap; ///< The current icon mask pixmap if in use
     ::Time             m_lastInputTime;  ///< Last time we received user input
-    XColor*            m_background;     ///< Optional background color
+    bool               m_backgroundSet;  ///< Is background color set?
+    XColor             m_backgroundColor;///< Background color
 };
 
 } // namespace priv

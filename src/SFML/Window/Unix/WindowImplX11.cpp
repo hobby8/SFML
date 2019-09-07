@@ -513,7 +513,7 @@ m_windowMapped   (false),
 m_iconPixmap     (0),
 m_iconMaskPixmap (0),
 m_lastInputTime  (0),
-m_background     (NULL)
+m_backgroundSet  (false)
 {
     // Open a connection with the X server
     m_display = OpenDisplay();
@@ -564,7 +564,7 @@ m_windowMapped   (false),
 m_iconPixmap     (0),
 m_iconMaskPixmap (0),
 m_lastInputTime  (0),
-m_background     (NULL)
+m_backgroundSet  (false)
 {
     // Open a connection with the X server
     m_display = OpenDisplay();
@@ -774,6 +774,16 @@ WindowImplX11::~WindowImplX11()
     // Destroy the input context
     if (m_inputContext)
         XDestroyIC(m_inputContext);
+
+    // Destroy the background color
+    if (m_backgroundSet)
+    {
+        XWindowAttributes attributes;
+        XGetWindowAttributes(m_display, m_window, &attributes);
+        Colormap colormap = (attributes.colormap != None) ? attributes.colormap : DefaultColormap(m_display, m_screen);
+
+        XFreeColors(m_display, colormap, &m_backgroundColor.pixel, 1, 0);
+    }
 
     // Destroy the window
     if (m_window && !m_isExternal)
@@ -1231,27 +1241,24 @@ void WindowImplX11::setUnresponsiveEraseColor(Uint8 red, Uint8 green, Uint8 blue
         blue = sRgbFromLinear(blue);
     }
 
-    if (!m_background || ((red << 8) != m_background->red) || ((green << 8) != m_background->green) || ((blue << 8) != m_background->blue))
+    if (!m_backgroundSet || ((red << 8) != m_backgroundColor.red) ||
+        ((green << 8) != m_backgroundColor.green) || ((blue << 8) != m_backgroundColor.blue))
     {
         XWindowAttributes attributes;
         XGetWindowAttributes(m_display, m_window, &attributes);
         Colormap colormap = (attributes.colormap != None) ? attributes.colormap : DefaultColormap(m_display, m_screen);
 
-        if (m_background)
-        {
-            XFreeColors(m_display, colormap, &m_background->pixel, 1, 0);
-        }
-        else
-        {
-            m_background = new XColor;
-        }
-        m_background->red = red << 8;
-        m_background->green = green << 8;
-        m_background->blue = blue << 8;
+        // Create the background color
+        if (m_backgroundSet)
+            XFreeColors(m_display, colormap, &m_backgroundColor.pixel, 1, 0);
+        m_backgroundColor.red = red << 8;
+        m_backgroundColor.green = green << 8;
+        m_backgroundColor.blue = blue << 8;
+        m_backgroundSet = XAllocColor(m_display, colormap, &m_backgroundColor) != 0;
 
-        if (XAllocColor(m_display, colormap, m_background))
+        if (m_backgroundSet)
         {
-            XSetWindowBackground(m_display, m_window, m_background->pixel);
+            XSetWindowBackground(m_display, m_window, m_backgroundColor.pixel);
             XFlush(m_display);
         }
     }
