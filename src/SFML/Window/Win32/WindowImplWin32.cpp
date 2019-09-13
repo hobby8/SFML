@@ -213,7 +213,8 @@ m_eraseEnabled    (false)
     {
 		bool dpiAwareAdjustWindowRect = false;
         HINSTANCE shCoreDll = LoadLibrary(L"Shcore.dll");
-        if (shCoreDll) {
+        HINSTANCE user32Dll = GetModuleHandle(L"user32.dll");
+        if (shCoreDll && user32Dll) {
 			enum MONITOR_DPI_TYPE {
 				MDT_EFFECTIVE_DPI = 0,
 				MDT_ANGULAR_DPI = 1,
@@ -224,7 +225,7 @@ m_eraseEnabled    (false)
             GetDpiForMonitorFuncType GetDpiForMonitorFunc = reinterpret_cast<GetDpiForMonitorFuncType>(GetProcAddress(shCoreDll, "GetDpiForMonitor"));
 			typedef BOOL (WINAPI* AdjustWindowRectExForDpiFuncType)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
             AdjustWindowRectExForDpiFuncType AdjustWindowRectExForDpiFunc =
-				reinterpret_cast<AdjustWindowRectExForDpiFuncType>(GetProcAddress(shCoreDll, "AdjustWindowRectExForDpi"));
+				reinterpret_cast<AdjustWindowRectExForDpiFuncType>(GetProcAddress(user32Dll, "AdjustWindowRectExForDpi"));
             if (GetDpiForMonitorFunc && AdjustWindowRectExForDpiFunc) {
 				RECT rectangle2 = {left, top, left + width, top + height};
 				UINT dpiX, dpiY;
@@ -375,19 +376,19 @@ void WindowImplWin32::setSize(const Vector2u& size)
     RECT rectangle = {0, 0, static_cast<long>(size.x), static_cast<long>(size.y)};
 
 	bool dpiAwareAdjustWindowRect = false;
-    HINSTANCE shCoreDll = LoadLibrary(L"Shcore.dll");
-    if (shCoreDll) {
+    HINSTANCE user32Dll = LoadLibrary(L"user32.dll");
+    if (user32Dll) {
 		typedef UINT (WINAPI* GetDpiForWindowFuncType)(HWND hwnd);
-		GetDpiForWindowFuncType GetDpiForWindowFunc = reinterpret_cast<GetDpiForWindowFuncType>(GetProcAddress(shCoreDll, "GetDpiForWindow"));
+		GetDpiForWindowFuncType GetDpiForWindowFunc = reinterpret_cast<GetDpiForWindowFuncType>(GetProcAddress(user32Dll, "GetDpiForWindow"));
 		typedef BOOL (WINAPI* AdjustWindowRectExForDpiFuncType)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
         AdjustWindowRectExForDpiFuncType AdjustWindowRectExForDpiFunc =
-			reinterpret_cast<AdjustWindowRectExForDpiFuncType>(GetProcAddress(shCoreDll, "AdjustWindowRectExForDpi"));
+			reinterpret_cast<AdjustWindowRectExForDpiFuncType>(GetProcAddress(user32Dll, "AdjustWindowRectExForDpi"));
         if (GetDpiForWindowFunc && AdjustWindowRectExForDpiFunc) {
 			if (AdjustWindowRectExForDpiFunc(&rectangle, GetWindowLong(m_handle, GWL_STYLE), false,
 				GetWindowLong(m_handle, GWL_EXSTYLE), GetDpiForWindowFunc(m_handle)))
 				dpiAwareAdjustWindowRect = true;
 		}
-		FreeLibrary(shCoreDll);
+		FreeLibrary(user32Dll);
 	}
 	if (!dpiAwareAdjustWindowRect)
 		AdjustWindowRectEx(&rectangle, GetWindowLong(m_handle, GWL_STYLE), false, GetWindowLong(m_handle, GWL_EXSTYLE));
