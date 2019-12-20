@@ -530,7 +530,7 @@ void WindowImplWin32::setUnresponsiveEraseColor(Uint8 red, Uint8 green, Uint8 bl
 void WindowImplWin32::registerWindowClass()
 {
     WNDCLASSW windowClass;
-    windowClass.style         = CS_HREDRAW | CS_VREDRAW;
+    windowClass.style         = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
     windowClass.lpfnWndProc   = &WindowImplWin32::globalOnEvent;
     windowClass.cbClsExtra    = 0;
     windowClass.cbWndExtra    = 0;
@@ -904,12 +904,14 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
 
         // Mouse left button down event
         case WM_LBUTTONDOWN:
+        case WM_LBUTTONDBLCLK:
         {
             Event event;
             event.type               = Event::MouseButtonPressed;
             event.mouseButton.button = Mouse::Left;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.clicks = (message == WM_LBUTTONDBLCLK) ? 2 : 1;
             event.mouseButton.modifiersAvailable = true;
             event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
             event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
@@ -927,6 +929,7 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Left;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.clicks = 0;
             event.mouseButton.modifiersAvailable = true;
             event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
             event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
@@ -938,12 +941,14 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
 
         // Mouse right button down event
         case WM_RBUTTONDOWN:
+        case WM_RBUTTONDBLCLK:
         {
             Event event;
             event.type               = Event::MouseButtonPressed;
             event.mouseButton.button = Mouse::Right;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.clicks = (message == WM_RBUTTONDBLCLK) ? 2 : 1;
             event.mouseButton.modifiersAvailable = true;
             event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
             event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
@@ -961,6 +966,7 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Right;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.clicks = 0;
             event.mouseButton.modifiersAvailable = true;
             event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
             event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
@@ -972,12 +978,14 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
 
         // Mouse wheel button down event
         case WM_MBUTTONDOWN:
+        case WM_MBUTTONDBLCLK:
         {
             Event event;
             event.type               = Event::MouseButtonPressed;
             event.mouseButton.button = Mouse::Middle;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.clicks = (message == WM_MBUTTONDBLCLK) ? 2 : 1;
             event.mouseButton.modifiersAvailable = true;
             event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
             event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
@@ -995,6 +1003,7 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = Mouse::Middle;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.clicks = 0;
             event.mouseButton.modifiersAvailable = true;
             event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
             event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
@@ -1006,12 +1015,14 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
 
         // Mouse X button down event
         case WM_XBUTTONDOWN:
+        case WM_XBUTTONDBLCLK:
         {
             Event event;
             event.type               = Event::MouseButtonPressed;
             event.mouseButton.button = HIWORD(wParam) == XBUTTON1 ? Mouse::XButton1 : Mouse::XButton2;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.clicks = (message == WM_XBUTTONDBLCLK) ? 2 : 1;
             event.mouseButton.modifiersAvailable = true;
             event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
             event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;
@@ -1029,6 +1040,7 @@ void WindowImplWin32::processEvent(UINT message, WPARAM wParam, LPARAM lParam)
             event.mouseButton.button = HIWORD(wParam) == XBUTTON1 ? Mouse::XButton1 : Mouse::XButton2;
             event.mouseButton.x      = static_cast<Int16>(LOWORD(lParam));
             event.mouseButton.y      = static_cast<Int16>(HIWORD(lParam));
+            event.mouseButton.clicks = 0;
             event.mouseButton.modifiersAvailable = true;
             event.mouseButton.alt     = HIWORD(GetKeyState(VK_MENU))    != 0;
             event.mouseButton.control = HIWORD(GetKeyState(VK_CONTROL)) != 0;

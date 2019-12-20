@@ -1997,6 +1997,7 @@ bool WindowImplX11::processEvent(XEvent& windowEvent)
                     case 8:       event.mouseButton.button = Mouse::XButton1; break;
                     case 9:       event.mouseButton.button = Mouse::XButton2; break;
                 }
+                event.mouseButton.clicks = 1;
                 event.mouseButton.modifiersAvailable = false;
                 pushEvent(event);
             }
@@ -2028,6 +2029,7 @@ bool WindowImplX11::processEvent(XEvent& windowEvent)
                     case 8:       event.mouseButton.button = Mouse::XButton1; break;
                     case 9:       event.mouseButton.button = Mouse::XButton2; break;
                 }
+                event.mouseButton.clicks = 0;
                 event.mouseButton.modifiersAvailable = false;
                 pushEvent(event);
             }
