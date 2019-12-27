@@ -79,6 +79,9 @@ namespace
 
     static const unsigned int             maxTrialsCount = 5;
 
+    static const int                      doubleClickDurationThresholdMsec = 500;
+    static const int                      doubleClickRadius = 1;
+
     // Predicate we use to find key repeat events in processEvent
     struct KeyRepeatFinder
     {
@@ -513,7 +516,8 @@ m_windowMapped   (false),
 m_iconPixmap     (0),
 m_iconMaskPixmap (0),
 m_lastInputTime  (0),
-m_backgroundSet  (false)
+m_backgroundSet  (false),
+m_lastButtonPressed(-1)
 {
     // Open a connection with the X server
     m_display = OpenDisplay();
@@ -564,7 +568,8 @@ m_windowMapped   (false),
 m_iconPixmap     (0),
 m_iconMaskPixmap (0),
 m_lastInputTime  (0),
-m_backgroundSet  (false)
+m_backgroundSet  (false),
+m_lastButtonPressed(-1)
 {
     // Open a connection with the X server
     m_display = OpenDisplay();
@@ -1997,9 +2002,17 @@ bool WindowImplX11::processEvent(XEvent& windowEvent)
                     case 8:       event.mouseButton.button = Mouse::XButton1; break;
                     case 9:       event.mouseButton.button = Mouse::XButton2; break;
                 }
-                event.mouseButton.clicks = 1;
+                event.mouseButton.clicks = (button == m_lastButtonPressed &&
+                    windowEvent.xbutton.time <= m_lastButtonPressTime + doubleClickDurationThresholdMsec &&
+                    std::abs(windowEvent.xbutton.x_root - m_lastButtonPressXRoot) <= doubleClickRadius &&
+                    std::abs(windowEvent.xbutton.y_root - m_lastButtonPressYRoot) <= doubleClickRadius) ? 2 : 1;
                 event.mouseButton.modifiersAvailable = false;
                 pushEvent(event);
+
+                m_lastButtonPressed = button;
+                m_lastButtonPressTime = windowEvent.xbutton.time;
+                m_lastButtonPressXRoot = windowEvent.xbutton.x_root;
+                m_lastButtonPressYRoot = windowEvent.xbutton.y_root;
             }
 
             updateLastInputTime(windowEvent.xbutton.time);

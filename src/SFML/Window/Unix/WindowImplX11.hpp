@@ -330,6 +330,10 @@ private:
     ::Time             m_lastInputTime;  ///< Last time we received user input
     bool               m_backgroundSet;  ///< Is background color set?
     XColor             m_backgroundColor;///< Background color
+    int                m_lastButtonPressed;
+    ::Time             m_lastButtonPressTime;    ///< Applicable if m_lastButtonPressed != -1
+    int                m_lastButtonPressXRoot;   ///< Applicable if m_lastButtonPressed != -1
+    int                m_lastButtonPressYRoot;   ///< Applicable if m_lastButtonPressed != -1
 };
 
 } // namespace priv
